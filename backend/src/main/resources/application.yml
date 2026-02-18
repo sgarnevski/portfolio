@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: portfolio-rebalancer
+  profiles:
+    active: dev
+
+server:
+  port: 8080
+
+app:
+  jwt:
+    secret: "your-256-bit-secret-key-change-in-production-minimum-32-chars!!"
+    expiration-ms: 86400000

@@ -1,0 +1,5 @@
+#!/bin/sh
+# Maven Wrapper script
+JAVA_EXE="java"
+WRAPPER_JAR="$(dirname "$0")/.mvn/wrapper/maven-wrapper.jar"
+exec "$JAVA_EXE" -jar "$WRAPPER_JAR" "$@"
