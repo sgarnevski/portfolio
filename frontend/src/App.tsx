@@ -4,6 +4,7 @@ import { RootState } from './store';
 import Layout from './components/layout/Layout';
 import LoginForm from './components/auth/LoginForm';
 import RegisterForm from './components/auth/RegisterForm';
+import OAuthCallback from './components/auth/OAuthCallback';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import Dashboard from './components/dashboard/Dashboard';
 import CreatePortfolioModal from './components/portfolio/CreatePortfolioModal';
@@ -24,6 +25,7 @@ export default function App() {
           path="/register"
           element={isAuthenticated ? <Navigate to="/" replace /> : <RegisterForm />}
         />
+        <Route path="/oauth2/callback" element={<OAuthCallback />} />
         <Route
           element={
             <ProtectedRoute>

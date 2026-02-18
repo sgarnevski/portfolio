@@ -88,6 +88,10 @@ public class AuthService {
     public void changePassword(ChangePasswordRequest request) {
         User user = getCurrentUser();
 
+        if (user.getPasswordHash() == null) {
+            throw new IllegalArgumentException("Cannot change password for OAuth-only account");
+        }
+
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
             throw new IllegalArgumentException("Current password is incorrect");
         }
