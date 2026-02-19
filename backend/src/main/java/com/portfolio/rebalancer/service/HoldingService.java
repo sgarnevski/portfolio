@@ -8,6 +8,7 @@ import com.portfolio.rebalancer.entity.Portfolio;
 import com.portfolio.rebalancer.entity.Trade;
 import com.portfolio.rebalancer.entity.TradeType;
 import com.portfolio.rebalancer.exception.ResourceNotFoundException;
+import com.portfolio.rebalancer.dto.response.QuoteResponse;
 import com.portfolio.rebalancer.repository.HoldingRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,10 +23,13 @@ public class HoldingService {
 
     private final HoldingRepository holdingRepository;
     private final PortfolioService portfolioService;
+    private final MarketDataClient marketDataClient;
 
-    public HoldingService(HoldingRepository holdingRepository, PortfolioService portfolioService) {
+    public HoldingService(HoldingRepository holdingRepository, PortfolioService portfolioService,
+                          MarketDataClient marketDataClient) {
         this.holdingRepository = holdingRepository;
         this.portfolioService = portfolioService;
+        this.marketDataClient = marketDataClient;
     }
 
     public List<HoldingResponse> getHoldings(Long portfolioId) {
@@ -37,6 +41,7 @@ public class HoldingService {
 
     @Transactional
     public HoldingResponse addHolding(Long portfolioId, CreateHoldingRequest request) {
+        validateTicker(request.getTickerSymbol());
         Portfolio portfolio = portfolioService.findPortfolioForCurrentUser(portfolioId);
 
         Holding holding = Holding.builder()
@@ -52,6 +57,7 @@ public class HoldingService {
 
     @Transactional
     public HoldingResponse updateHolding(Long portfolioId, Long holdingId, CreateHoldingRequest request) {
+        validateTicker(request.getTickerSymbol());
         portfolioService.findPortfolioForCurrentUser(portfolioId);
         Holding holding = holdingRepository.findById(holdingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Holding not found"));
@@ -62,6 +68,13 @@ public class HoldingService {
         holding.setCurrency(request.getCurrency());
         holding = holdingRepository.save(holding);
         return toResponse(holding);
+    }
+
+    private void validateTicker(String tickerSymbol) {
+        QuoteResponse quote = marketDataClient.fetchQuote(tickerSymbol);
+        if (quote.getRegularMarketPrice().compareTo(BigDecimal.ZERO) == 0) {
+            throw new IllegalArgumentException("Invalid ticker symbol: " + tickerSymbol);
+        }
     }
 
     @Transactional

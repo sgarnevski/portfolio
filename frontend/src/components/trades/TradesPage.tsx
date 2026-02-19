@@ -13,6 +13,7 @@ import {
 } from '../../store/slices/tradeSlice';
 import { CreateTradeRequest } from '../../types/holding';
 import { formatCurrency } from '../../utils/formatCurrency';
+import PriceChart from './PriceChart';
 
 interface EditTradeRowProps {
   defaultValues: CreateTradeRequest;
@@ -148,6 +149,8 @@ export default function TradesPage() {
           )}
         </div>
       </div>
+
+      {holding && <PriceChart symbol={holding.tickerSymbol} trades={trades} />}
 
       <div className="flex justify-end mb-4">
         <button

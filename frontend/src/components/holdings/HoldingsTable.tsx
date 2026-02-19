@@ -8,6 +8,8 @@ import { fetchCurrenciesRequest } from '../../store/slices/currencySlice';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { AssetClass, CreateHoldingRequest } from '../../types/holding';
 import { Currency } from '../../types/currency';
+import { TickerSearchResult } from '../../types/quote';
+import TickerAutocomplete from '../common/TickerAutocomplete';
 
 interface Props {
   portfolioId: number;
@@ -24,7 +26,14 @@ interface EditRowProps {
 }
 
 function EditRow({ defaultValues, currencies, onSave, onCancel, extraCells }: EditRowProps) {
-  const { register, handleSubmit, formState: { errors } } = useForm<CreateHoldingRequest>({ defaultValues });
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<CreateHoldingRequest>({ defaultValues });
+  const tickerValue = watch('tickerSymbol');
+  const nameValue = watch('name');
+
+  const handleTickerSelect = (result: TickerSearchResult) => {
+    setValue('tickerSymbol', result.symbol);
+    setValue('name', result.longName || result.shortName);
+  };
 
   return (
     <tr className="bg-blue-50">
@@ -39,16 +48,22 @@ function EditRow({ defaultValues, currencies, onSave, onCancel, extraCells }: Ed
         </select>
       </td>
       <td className="px-4 py-2">
-        <input
-          {...register('tickerSymbol', { required: 'Required' })}
+        <input type="hidden" {...register('tickerSymbol', { required: 'Required' })} />
+        <TickerAutocomplete
+          value={tickerValue || ''}
+          onChange={(val) => setValue('tickerSymbol', val)}
+          onSelect={handleTickerSelect}
           placeholder="IWDA.AS"
           className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
         />
         {errors.tickerSymbol && <p className="text-red-500 text-xs">{errors.tickerSymbol.message}</p>}
       </td>
       <td className="px-4 py-2">
+        <input type="hidden" {...register('name', { required: 'Required' })} />
         <input
-          {...register('name', { required: 'Required' })}
+          type="text"
+          value={nameValue || ''}
+          onChange={(e) => setValue('name', e.target.value)}
           placeholder="iShares Core MSCI World"
           className="w-full rounded border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
         />

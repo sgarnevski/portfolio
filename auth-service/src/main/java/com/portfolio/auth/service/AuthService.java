@@ -2,14 +2,18 @@ package com.portfolio.auth.service;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.portfolio.auth.dto.ChangePasswordRequest;
+import com.portfolio.auth.dto.ClientCredentialsRequest;
 import com.portfolio.auth.dto.GoogleTokenRequest;
 import com.portfolio.auth.dto.LoginRequest;
 import com.portfolio.auth.dto.RegisterRequest;
+import com.portfolio.auth.dto.ServiceTokenResponse;
 import com.portfolio.auth.dto.UpdateProfileRequest;
 import com.portfolio.auth.dto.AuthResponse;
 import com.portfolio.auth.dto.UserProfileResponse;
 import com.portfolio.auth.entity.AuthProvider;
+import com.portfolio.auth.entity.ServiceClient;
 import com.portfolio.auth.entity.User;
+import com.portfolio.auth.repository.ServiceClientRepository;
 import com.portfolio.auth.repository.UserRepository;
 import com.portfolio.auth.security.JwtTokenProvider;
 import org.slf4j.Logger;
@@ -27,19 +31,41 @@ public class AuthService {
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
     private final UserRepository userRepository;
+    private final ServiceClientRepository serviceClientRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
     private final GoogleTokenVerifier googleTokenVerifier;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder,
-                       JwtTokenProvider jwtTokenProvider, AuthenticationManager authenticationManager,
-                       GoogleTokenVerifier googleTokenVerifier) {
+    public AuthService(UserRepository userRepository, ServiceClientRepository serviceClientRepository,
+                       PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider,
+                       AuthenticationManager authenticationManager, GoogleTokenVerifier googleTokenVerifier) {
         this.userRepository = userRepository;
+        this.serviceClientRepository = serviceClientRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.authenticationManager = authenticationManager;
         this.googleTokenVerifier = googleTokenVerifier;
+    }
+
+    public ServiceTokenResponse issueServiceToken(ClientCredentialsRequest request) {
+        if (!"client_credentials".equals(request.getGrantType())) {
+            throw new IllegalArgumentException("Unsupported grant_type. Must be 'client_credentials'");
+        }
+
+        ServiceClient client = serviceClientRepository.findByClientId(request.getClientId())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid client credentials"));
+
+        if (!client.isEnabled()) {
+            throw new IllegalArgumentException("Service client is disabled");
+        }
+
+        if (!passwordEncoder.matches(request.getClientSecret(), client.getClientSecretHash())) {
+            throw new IllegalArgumentException("Invalid client credentials");
+        }
+
+        String token = jwtTokenProvider.generateServiceToken(client.getClientId(), client.getScope());
+        return new ServiceTokenResponse(token, "Bearer", 3600, client.getScope());
     }
 
     public AuthResponse register(RegisterRequest request) {

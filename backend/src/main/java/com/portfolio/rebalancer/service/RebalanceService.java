@@ -26,14 +26,14 @@ public class RebalanceService {
 
     private final HoldingRepository holdingRepository;
     private final TargetAllocationRepository allocationRepository;
-    private final YahooFinanceService yahooFinanceService;
+    private final MarketDataClient marketDataClient;
     private final PortfolioService portfolioService;
 
     public RebalanceService(HoldingRepository holdingRepository, TargetAllocationRepository allocationRepository,
-                            YahooFinanceService yahooFinanceService, PortfolioService portfolioService) {
+                            MarketDataClient marketDataClient, PortfolioService portfolioService) {
         this.holdingRepository = holdingRepository;
         this.allocationRepository = allocationRepository;
-        this.yahooFinanceService = yahooFinanceService;
+        this.marketDataClient = marketDataClient;
         this.portfolioService = portfolioService;
     }
 
@@ -288,7 +288,7 @@ public class RebalanceService {
     }
 
     private Map<String, QuoteResponse> fetchPriceMap(List<String> tickers) {
-        List<QuoteResponse> quotes = yahooFinanceService.fetchQuotes(tickers);
+        List<QuoteResponse> quotes = marketDataClient.fetchQuotes(tickers);
         return quotes.stream().collect(Collectors.toMap(QuoteResponse::getSymbol, q -> q, (a, b) -> a));
     }
 }

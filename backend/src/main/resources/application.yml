@@ -10,3 +10,9 @@ server:
 app:
   jwt:
     secret: "your-256-bit-secret-key-change-in-production-minimum-32-chars!!"
+  gateway:
+    url: ${GATEWAY_URL:http://localhost:8060}
+  auth:
+    token-url: ${AUTH_TOKEN_URL:http://localhost:8090/api/auth/token}
+    client-id: ${AUTH_CLIENT_ID:portfolio-backend}
+    client-secret: ${AUTH_CLIENT_SECRET:gateway-secret-change-in-prod}

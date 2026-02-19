@@ -17,14 +17,14 @@ public class PriceUpdateScheduler {
 
     private static final Logger log = LoggerFactory.getLogger(PriceUpdateScheduler.class);
 
-    private final YahooFinanceService yahooFinanceService;
+    private final MarketDataClient marketDataClient;
     private final SimpMessagingTemplate messagingTemplate;
     private final HoldingRepository holdingRepository;
 
-    public PriceUpdateScheduler(YahooFinanceService yahooFinanceService,
+    public PriceUpdateScheduler(MarketDataClient marketDataClient,
                                 SimpMessagingTemplate messagingTemplate,
                                 HoldingRepository holdingRepository) {
-        this.yahooFinanceService = yahooFinanceService;
+        this.marketDataClient = marketDataClient;
         this.messagingTemplate = messagingTemplate;
         this.holdingRepository = holdingRepository;
     }
@@ -35,7 +35,7 @@ public class PriceUpdateScheduler {
         if (allTickers.isEmpty()) return;
 
         try {
-            List<QuoteResponse> quotes = yahooFinanceService.fetchQuotes(allTickers);
+            List<QuoteResponse> quotes = marketDataClient.fetchQuotes(allTickers);
             StockPriceMessage message = new StockPriceMessage(quotes, LocalDateTime.now());
             messagingTemplate.convertAndSend("/topic/prices", message);
             log.debug("Pushed price updates for {} tickers", allTickers.size());

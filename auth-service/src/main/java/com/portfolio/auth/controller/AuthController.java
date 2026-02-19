@@ -1,6 +1,14 @@
 package com.portfolio.auth.controller;
 
-import com.portfolio.auth.dto.*;
+import com.portfolio.auth.dto.AuthResponse;
+import com.portfolio.auth.dto.ChangePasswordRequest;
+import com.portfolio.auth.dto.ClientCredentialsRequest;
+import com.portfolio.auth.dto.GoogleTokenRequest;
+import com.portfolio.auth.dto.LoginRequest;
+import com.portfolio.auth.dto.RegisterRequest;
+import com.portfolio.auth.dto.ServiceTokenResponse;
+import com.portfolio.auth.dto.UpdateProfileRequest;
+import com.portfolio.auth.dto.UserProfileResponse;
 import com.portfolio.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirements;
@@ -19,6 +27,13 @@ public class AuthController {
 
     public AuthController(AuthService authService) {
         this.authService = authService;
+    }
+
+    @PostMapping("/token")
+    @Operation(summary = "Issue service token via client_credentials grant")
+    @SecurityRequirements
+    public ResponseEntity<ServiceTokenResponse> issueToken(@Valid @RequestBody ClientCredentialsRequest request) {
+        return ResponseEntity.ok(authService.issueServiceToken(request));
     }
 
     @PostMapping("/register")

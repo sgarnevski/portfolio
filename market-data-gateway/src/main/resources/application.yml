@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: market-data-gateway
+
+server:
+  port: 8060
+
+app:
+  jwt:
+    secret: "your-256-bit-secret-key-change-in-production-minimum-32-chars!!"

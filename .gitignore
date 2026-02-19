@@ -10,6 +10,10 @@ auth-service/data/
 auth-service/*.db
 auth-service/.mvn/
 
+# Market Data Gateway
+market-data-gateway/target/
+market-data-gateway/.mvn/
+
 # Frontend
 frontend/node_modules/
 frontend/dist/
