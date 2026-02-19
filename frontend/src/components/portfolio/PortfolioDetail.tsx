@@ -64,15 +64,23 @@ export default function PortfolioDetail() {
     const drifts: { assetClass: string; current: number; target: number; drift: number; driftValue: number }[] = [];
     let maxDrift = 0;
 
-    for (const alloc of targetAllocations) {
-      const currentValue = valueByClass[alloc.assetClass] || 0;
+    // Include all asset classes from both holdings and targets
+    const allClasses = new Set<string>([
+      ...Object.keys(valueByClass),
+      ...targetAllocations.map((a) => a.assetClass),
+    ]);
+
+    for (const assetClass of allClasses) {
+      const currentValue = valueByClass[assetClass] || 0;
       const currentPct = (currentValue / totalValue) * 100;
-      const drift = currentPct - alloc.targetPercentage;
-      const driftValue = currentValue - (totalValue * alloc.targetPercentage / 100);
+      const target = targetAllocations.find((a) => a.assetClass === assetClass);
+      const targetPct = target?.targetPercentage ?? 0;
+      const drift = currentPct - targetPct;
+      const driftValue = currentValue - (totalValue * targetPct / 100);
       drifts.push({
-        assetClass: alloc.assetClass,
+        assetClass,
         current: currentPct,
-        target: alloc.targetPercentage,
+        target: targetPct,
         drift,
         driftValue,
       });

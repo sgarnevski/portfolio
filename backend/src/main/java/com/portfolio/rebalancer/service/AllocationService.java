@@ -44,6 +44,7 @@ public class AllocationService {
         }
 
         allocationRepository.deleteByPortfolioId(portfolioId);
+        allocationRepository.flush();
 
         List<TargetAllocation> allocations = request.getAllocations().stream()
                 .map(entry -> TargetAllocation.builder()

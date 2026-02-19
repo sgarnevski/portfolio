@@ -14,9 +14,9 @@ interface Props {
 }
 
 export default function DriftNotification({ drifts, onRebalance }: Props) {
-  const significantDrifts = drifts.filter((d) => Math.abs(d.drift) > 2);
+  const hasDrift = drifts.some((d) => Math.abs(d.drift) > 2);
 
-  if (significantDrifts.length === 0) return null;
+  if (!hasDrift) return null;
 
   return (
     <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-4 mb-6">
@@ -27,7 +27,7 @@ export default function DriftNotification({ drifts, onRebalance }: Props) {
             Your portfolio allocation has drifted from target. Consider rebalancing.
           </p>
           <div className="mt-3 space-y-1">
-            {significantDrifts.map((d) => (
+            {drifts.map((d) => (
               <div key={d.assetClass} className="flex items-center gap-3 text-xs">
                 <span className="font-medium text-yellow-800 w-28">{d.assetClass.replace('_', ' ')}</span>
                 <span className="text-gray-600">
