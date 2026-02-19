@@ -8,6 +8,7 @@ import rebalanceReducer from './slices/rebalanceSlice';
 import priceReducer from './slices/priceSlice';
 import currencyReducer from './slices/currencySlice';
 import userReducer from './slices/userSlice';
+import tradeReducer from './slices/tradeSlice';
 import rootSaga from './sagas/rootSaga';
 
 const sagaMiddleware = createSagaMiddleware();
@@ -22,6 +23,7 @@ export const store = configureStore({
     price: priceReducer,
     currency: currencyReducer,
     user: userReducer,
+    trade: tradeReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ thunk: false }).concat(sagaMiddleware),

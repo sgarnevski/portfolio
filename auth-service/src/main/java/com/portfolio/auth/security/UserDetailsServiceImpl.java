@@ -1,6 +1,6 @@
-package com.portfolio.rebalancer.security;
+package com.portfolio.auth.security;
 
-import com.portfolio.rebalancer.repository.UserRepository;
+import com.portfolio.auth.repository.UserRepository;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

@@ -7,16 +7,32 @@ export interface Holding {
   assetClass: AssetClass;
   quantity: number;
   averageCostBasis: number | null;
-  initialValue: number | null;
+  totalCost: number | null;
   currency: string;
+  trades: Trade[];
 }
 
-export interface AddHoldingRequest {
+export interface Trade {
+  id: number;
+  date: string;
+  type: 'BUY' | 'SELL';
+  quantity: number;
+  price: number;
+  fee: number | null;
+  createdAt: string;
+}
+
+export interface CreateHoldingRequest {
   tickerSymbol: string;
   name: string;
   assetClass: AssetClass;
-  quantity: number;
-  averageCostBasis?: number;
-  initialValue?: number;
   currency?: string;
+}
+
+export interface CreateTradeRequest {
+  date: string;
+  type: 'BUY' | 'SELL';
+  quantity: number;
+  price: number;
+  fee?: number;
 }

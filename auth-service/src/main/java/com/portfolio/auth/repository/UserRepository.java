@@ -1,6 +1,6 @@
-package com.portfolio.rebalancer.repository;
+package com.portfolio.auth.repository;
 
-import com.portfolio.rebalancer.entity.User;
+import com.portfolio.auth.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 

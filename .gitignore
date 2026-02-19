@@ -4,6 +4,12 @@ backend/data/
 backend/*.db
 backend/.mvn/
 
+# Auth Service
+auth-service/target/
+auth-service/data/
+auth-service/*.db
+auth-service/.mvn/
+
 # Frontend
 frontend/node_modules/
 frontend/dist/

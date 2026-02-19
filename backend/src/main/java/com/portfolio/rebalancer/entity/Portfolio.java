@@ -19,9 +19,8 @@ public class Portfolio {
     @Column(length = 500)
     private String description;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id", nullable = false)
-    private User owner;
+    @Column(name = "owner_id", nullable = false)
+    private Long ownerId;
 
     @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Holding> holdings = new ArrayList<>();
@@ -37,13 +36,13 @@ public class Portfolio {
     public Portfolio() {
     }
 
-    public Portfolio(Long id, String name, String description, User owner,
+    public Portfolio(Long id, String name, String description, Long ownerId,
                      List<Holding> holdings, List<TargetAllocation> targetAllocations,
                      LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.name = name;
         this.description = description;
-        this.owner = owner;
+        this.ownerId = ownerId;
         this.holdings = holdings != null ? holdings : new ArrayList<>();
         this.targetAllocations = targetAllocations != null ? targetAllocations : new ArrayList<>();
         this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
@@ -64,8 +63,8 @@ public class Portfolio {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public User getOwner() { return owner; }
-    public void setOwner(User owner) { this.owner = owner; }
+    public Long getOwnerId() { return ownerId; }
+    public void setOwnerId(Long ownerId) { this.ownerId = ownerId; }
 
     public List<Holding> getHoldings() { return holdings; }
     public void setHoldings(List<Holding> holdings) { this.holdings = holdings; }
@@ -85,7 +84,7 @@ public class Portfolio {
         private Long id;
         private String name;
         private String description;
-        private User owner;
+        private Long ownerId;
         private List<Holding> holdings = new ArrayList<>();
         private List<TargetAllocation> targetAllocations = new ArrayList<>();
         private LocalDateTime createdAt = LocalDateTime.now();
@@ -94,14 +93,14 @@ public class Portfolio {
         public PortfolioBuilder id(Long id) { this.id = id; return this; }
         public PortfolioBuilder name(String name) { this.name = name; return this; }
         public PortfolioBuilder description(String description) { this.description = description; return this; }
-        public PortfolioBuilder owner(User owner) { this.owner = owner; return this; }
+        public PortfolioBuilder ownerId(Long ownerId) { this.ownerId = ownerId; return this; }
         public PortfolioBuilder holdings(List<Holding> holdings) { this.holdings = holdings; return this; }
         public PortfolioBuilder targetAllocations(List<TargetAllocation> targetAllocations) { this.targetAllocations = targetAllocations; return this; }
         public PortfolioBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
         public PortfolioBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
 
         public Portfolio build() {
-            return new Portfolio(id, name, description, owner, holdings, targetAllocations, createdAt, updatedAt);
+            return new Portfolio(id, name, description, ownerId, holdings, targetAllocations, createdAt, updatedAt);
         }
     }
 }

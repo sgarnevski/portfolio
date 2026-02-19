@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Holding, AddHoldingRequest } from '../../types/holding';
+import { Holding, CreateHoldingRequest } from '../../types/holding';
 
 interface HoldingState {
   holdings: Holding[];
@@ -29,7 +29,7 @@ const holdingSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
-    addHoldingRequest: (state, _action: PayloadAction<{ portfolioId: number; data: AddHoldingRequest }>) => {
+    addHoldingRequest: (state, _action: PayloadAction<{ portfolioId: number; data: CreateHoldingRequest }>) => {
       state.loading = true;
       state.error = null;
     },
@@ -41,7 +41,7 @@ const holdingSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
-    updateHoldingRequest: (state, _action: PayloadAction<{ portfolioId: number; holdingId: number; data: AddHoldingRequest }>) => {
+    updateHoldingRequest: (state, _action: PayloadAction<{ portfolioId: number; holdingId: number; data: CreateHoldingRequest }>) => {
       state.loading = true;
       state.error = null;
     },

@@ -8,6 +8,8 @@ import com.portfolio.rebalancer.entity.AssetClass;
 import com.portfolio.rebalancer.entity.Holding;
 import com.portfolio.rebalancer.entity.Portfolio;
 import com.portfolio.rebalancer.entity.TargetAllocation;
+import com.portfolio.rebalancer.entity.Trade;
+import com.portfolio.rebalancer.entity.TradeType;
 import com.portfolio.rebalancer.exception.InvalidAllocationException;
 import com.portfolio.rebalancer.repository.HoldingRepository;
 import com.portfolio.rebalancer.repository.TargetAllocationRepository;
@@ -54,11 +56,14 @@ public class RebalanceService {
         // Calculate total portfolio value
         BigDecimal totalValue = BigDecimal.ZERO;
         Map<String, BigDecimal> holdingValues = new HashMap<>();
+        Map<String, BigDecimal> holdingQuantities = new HashMap<>();
         for (Holding h : holdings) {
+            BigDecimal qty = computeQuantity(h);
+            holdingQuantities.put(h.getTickerSymbol(), qty);
             BigDecimal price = priceMap.getOrDefault(h.getTickerSymbol(),
                     QuoteResponse.builder().regularMarketPrice(BigDecimal.ZERO).build())
                     .getRegularMarketPrice();
-            BigDecimal value = h.getQuantity().multiply(price);
+            BigDecimal value = qty.multiply(price);
             holdingValues.put(h.getTickerSymbol(), value);
             totalValue = totalValue.add(value);
         }
@@ -109,8 +114,8 @@ public class RebalanceService {
         }
 
         // Generate trade recommendations
-        List<TradeRecommendation> trades = generateTrades(holdings, priceMap, currentValueByClass,
-                targetMap, totalValue);
+        List<TradeRecommendation> trades = generateTrades(holdings, holdingQuantities, priceMap,
+                currentValueByClass, targetMap, totalValue);
 
         return RebalanceResponse.builder()
                 .portfolioId(portfolioId)
@@ -189,8 +194,22 @@ public class RebalanceService {
                 .build();
     }
 
+    private BigDecimal computeQuantity(Holding holding) {
+        if (holding.getTrades() == null) return BigDecimal.ZERO;
+        BigDecimal qty = BigDecimal.ZERO;
+        for (Trade t : holding.getTrades()) {
+            if (t.getType() == TradeType.BUY) {
+                qty = qty.add(t.getQuantity());
+            } else {
+                qty = qty.subtract(t.getQuantity());
+            }
+        }
+        return qty;
+    }
+
     private List<TradeRecommendation> generateTrades(
             List<Holding> holdings,
+            Map<String, BigDecimal> holdingQuantities,
             Map<String, QuoteResponse> priceMap,
             Map<AssetClass, BigDecimal> currentValueByClass,
             Map<AssetClass, BigDecimal> targetMap,
@@ -222,7 +241,8 @@ public class RebalanceService {
                         BigDecimal price = priceMap.getOrDefault(h.getTickerSymbol(),
                                 QuoteResponse.builder().regularMarketPrice(BigDecimal.ONE).build())
                                 .getRegularMarketPrice();
-                        return h.getQuantity().multiply(price);
+                        BigDecimal qty = holdingQuantities.getOrDefault(h.getTickerSymbol(), BigDecimal.ZERO);
+                        return qty.multiply(price);
                     })
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -232,7 +252,8 @@ public class RebalanceService {
                         .getRegularMarketPrice();
                 if (price.compareTo(BigDecimal.ZERO) == 0) continue;
 
-                BigDecimal holdingVal = h.getQuantity().multiply(price);
+                BigDecimal qty = holdingQuantities.getOrDefault(h.getTickerSymbol(), BigDecimal.ZERO);
+                BigDecimal holdingVal = qty.multiply(price);
                 BigDecimal proportion = classTotal.compareTo(BigDecimal.ZERO) > 0
                         ? holdingVal.divide(classTotal, 6, RoundingMode.HALF_UP)
                         : BigDecimal.ONE.divide(BigDecimal.valueOf(classHoldings.size()), 6, RoundingMode.HALF_UP);

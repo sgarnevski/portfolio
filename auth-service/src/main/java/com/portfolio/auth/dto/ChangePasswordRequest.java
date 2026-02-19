@@ -1,4 +1,4 @@
-package com.portfolio.rebalancer.dto.request;
+package com.portfolio.auth.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

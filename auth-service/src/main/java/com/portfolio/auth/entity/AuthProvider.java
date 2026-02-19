@@ -1,4 +1,4 @@
-package com.portfolio.rebalancer.entity;
+package com.portfolio.auth.entity;
 
 public enum AuthProvider {
     LOCAL,

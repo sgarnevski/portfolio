@@ -1,7 +1,7 @@
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { holdingApi } from '../../api/holdingApi';
-import { AddHoldingRequest } from '../../types/holding';
+import { CreateHoldingRequest } from '../../types/holding';
 import {
   fetchHoldingsRequest, fetchHoldingsSuccess, fetchHoldingsFailure,
   addHoldingRequest, addHoldingSuccess, addHoldingFailure,
@@ -19,7 +19,7 @@ function* handleFetchHoldings(action: PayloadAction<number>) {
   }
 }
 
-function* handleAddHolding(action: PayloadAction<{ portfolioId: number; data: AddHoldingRequest }>) {
+function* handleAddHolding(action: PayloadAction<{ portfolioId: number; data: CreateHoldingRequest }>) {
   try {
     const response: Awaited<ReturnType<typeof holdingApi.add>> = yield call(
       holdingApi.add, action.payload.portfolioId, action.payload.data
@@ -31,7 +31,7 @@ function* handleAddHolding(action: PayloadAction<{ portfolioId: number; data: Ad
   }
 }
 
-function* handleUpdateHolding(action: PayloadAction<{ portfolioId: number; holdingId: number; data: AddHoldingRequest }>) {
+function* handleUpdateHolding(action: PayloadAction<{ portfolioId: number; holdingId: number; data: CreateHoldingRequest }>) {
   try {
     const response: Awaited<ReturnType<typeof holdingApi.update>> = yield call(
       holdingApi.update, action.payload.portfolioId, action.payload.holdingId, action.payload.data

@@ -7,7 +7,6 @@ import { fetchAllocationsRequest } from '../../store/slices/allocationSlice';
 import { fetchPricesRequest } from '../../store/slices/priceSlice';
 import { deletePortfolioRequest } from '../../store/slices/portfolioSlice';
 import HoldingsTable from '../holdings/HoldingsTable';
-import AddHoldingModal from '../holdings/AddHoldingModal';
 import EditPortfolioModal from './EditPortfolioModal';
 import AllocationEditor from '../allocation/AllocationEditor';
 import AllocationPieChart from '../allocation/AllocationPieChart';
@@ -29,7 +28,6 @@ export default function PortfolioDetail() {
   const portfolio = portfolios.find((p) => p.id === portfolioId);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('holdings');
-  const [showAddHolding, setShowAddHolding] = useState(false);
   const [showEditPortfolio, setShowEditPortfolio] = useState(false);
 
   useEffect(() => {
@@ -100,7 +98,7 @@ export default function PortfolioDetail() {
 
   // Calculate total cost basis
   const totalCost = holdings.reduce((sum, h) => {
-    return sum + (h.averageCostBasis ?? 0) * h.quantity;
+    return sum + (h.totalCost ?? 0);
   }, 0);
 
   const totalPnL = totalCost > 0 ? totalValue - totalCost : 0;
@@ -171,20 +169,7 @@ export default function PortfolioDetail() {
       </div>
 
       {activeTab === 'holdings' && (
-        <div>
-          <div className="flex justify-end mb-4">
-            <button
-              onClick={() => setShowAddHolding(true)}
-              className="bg-blue-600 text-white py-2 px-4 rounded-md text-sm hover:bg-blue-700"
-            >
-              + Add Holding
-            </button>
-          </div>
-          <HoldingsTable portfolioId={portfolioId} />
-          {showAddHolding && (
-            <AddHoldingModal portfolioId={portfolioId} onClose={() => setShowAddHolding(false)} />
-          )}
-        </div>
+        <HoldingsTable portfolioId={portfolioId} />
       )}
 
       {activeTab === 'allocation' && (

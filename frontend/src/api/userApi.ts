@@ -1,11 +1,11 @@
-import axiosClient from './axiosClient';
+import { authAxiosClient } from './axiosClient';
 import { UserProfile, UpdateProfileRequest, ChangePasswordRequest } from '../types/user';
 
 export const userApi = {
   getProfile: () =>
-    axiosClient.get<UserProfile>('/users/me'),
+    authAxiosClient.get<UserProfile>('/auth/me'),
   updateProfile: (data: UpdateProfileRequest) =>
-    axiosClient.put<UserProfile>('/users/me', data),
+    authAxiosClient.put<UserProfile>('/auth/me', data),
   changePassword: (data: ChangePasswordRequest) =>
-    axiosClient.post('/users/me/change-password', data),
+    authAxiosClient.post('/auth/me/change-password', data),
 };

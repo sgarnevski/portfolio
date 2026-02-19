@@ -1,14 +1,20 @@
 package com.portfolio.rebalancer.service;
 
-import com.portfolio.rebalancer.dto.request.AddHoldingRequest;
+import com.portfolio.rebalancer.dto.request.CreateHoldingRequest;
 import com.portfolio.rebalancer.dto.response.HoldingResponse;
+import com.portfolio.rebalancer.dto.response.TradeResponse;
 import com.portfolio.rebalancer.entity.Holding;
 import com.portfolio.rebalancer.entity.Portfolio;
+import com.portfolio.rebalancer.entity.Trade;
+import com.portfolio.rebalancer.entity.TradeType;
 import com.portfolio.rebalancer.exception.ResourceNotFoundException;
 import com.portfolio.rebalancer.repository.HoldingRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -30,7 +36,7 @@ public class HoldingService {
     }
 
     @Transactional
-    public HoldingResponse addHolding(Long portfolioId, AddHoldingRequest request) {
+    public HoldingResponse addHolding(Long portfolioId, CreateHoldingRequest request) {
         Portfolio portfolio = portfolioService.findPortfolioForCurrentUser(portfolioId);
 
         Holding holding = Holding.builder()
@@ -38,9 +44,6 @@ public class HoldingService {
                 .tickerSymbol(request.getTickerSymbol().toUpperCase())
                 .name(request.getName())
                 .assetClass(request.getAssetClass())
-                .quantity(request.getQuantity())
-                .averageCostBasis(request.getAverageCostBasis())
-                .initialValue(request.getInitialValue())
                 .currency(request.getCurrency())
                 .build();
         holding = holdingRepository.save(holding);
@@ -48,7 +51,7 @@ public class HoldingService {
     }
 
     @Transactional
-    public HoldingResponse updateHolding(Long portfolioId, Long holdingId, AddHoldingRequest request) {
+    public HoldingResponse updateHolding(Long portfolioId, Long holdingId, CreateHoldingRequest request) {
         portfolioService.findPortfolioForCurrentUser(portfolioId);
         Holding holding = holdingRepository.findById(holdingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Holding not found"));
@@ -56,9 +59,6 @@ public class HoldingService {
         holding.setTickerSymbol(request.getTickerSymbol().toUpperCase());
         holding.setName(request.getName());
         holding.setAssetClass(request.getAssetClass());
-        holding.setQuantity(request.getQuantity());
-        holding.setAverageCostBasis(request.getAverageCostBasis());
-        holding.setInitialValue(request.getInitialValue());
         holding.setCurrency(request.getCurrency());
         holding = holdingRepository.save(holding);
         return toResponse(holding);
@@ -70,16 +70,50 @@ public class HoldingService {
         holdingRepository.deleteById(holdingId);
     }
 
-    private HoldingResponse toResponse(Holding holding) {
+    public HoldingResponse toResponse(Holding holding) {
+        List<Trade> trades = holding.getTrades() != null ? holding.getTrades() : Collections.emptyList();
+
+        BigDecimal quantity = BigDecimal.ZERO;
+        BigDecimal totalCost = BigDecimal.ZERO;
+
+        for (Trade t : trades) {
+            BigDecimal tradeCost = t.getQuantity().multiply(t.getPrice());
+            BigDecimal fee = t.getFee() != null ? t.getFee() : BigDecimal.ZERO;
+            if (t.getType() == TradeType.BUY) {
+                quantity = quantity.add(t.getQuantity());
+                totalCost = totalCost.add(tradeCost).add(fee);
+            } else {
+                quantity = quantity.subtract(t.getQuantity());
+            }
+        }
+
+        BigDecimal averageCostBasis = BigDecimal.ZERO;
+        if (quantity.compareTo(BigDecimal.ZERO) > 0) {
+            averageCostBasis = totalCost.divide(quantity, 4, RoundingMode.HALF_UP);
+        }
+
+        List<TradeResponse> tradeResponses = trades.stream()
+                .map(t -> TradeResponse.builder()
+                        .id(t.getId())
+                        .date(t.getDate())
+                        .type(t.getType())
+                        .quantity(t.getQuantity())
+                        .price(t.getPrice())
+                        .fee(t.getFee())
+                        .createdAt(t.getCreatedAt())
+                        .build())
+                .toList();
+
         return HoldingResponse.builder()
                 .id(holding.getId())
                 .tickerSymbol(holding.getTickerSymbol())
                 .name(holding.getName())
                 .assetClass(holding.getAssetClass())
-                .quantity(holding.getQuantity())
-                .averageCostBasis(holding.getAverageCostBasis())
-                .initialValue(holding.getInitialValue())
+                .quantity(quantity)
+                .averageCostBasis(averageCostBasis)
+                .totalCost(totalCost)
                 .currency(holding.getCurrency())
+                .trades(tradeResponses)
                 .build();
     }
 }

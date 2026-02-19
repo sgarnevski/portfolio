@@ -2,6 +2,7 @@ package com.portfolio.rebalancer.dto.response;
 
 import com.portfolio.rebalancer.entity.AssetClass;
 import java.math.BigDecimal;
+import java.util.List;
 
 public class HoldingResponse {
     private Long id;
@@ -10,22 +11,25 @@ public class HoldingResponse {
     private AssetClass assetClass;
     private BigDecimal quantity;
     private BigDecimal averageCostBasis;
-    private BigDecimal initialValue;
+    private BigDecimal totalCost;
     private String currency;
+    private List<TradeResponse> trades;
 
     public HoldingResponse() {
     }
 
     public HoldingResponse(Long id, String tickerSymbol, String name, AssetClass assetClass,
-                           BigDecimal quantity, BigDecimal averageCostBasis, BigDecimal initialValue, String currency) {
+                           BigDecimal quantity, BigDecimal averageCostBasis, BigDecimal totalCost,
+                           String currency, List<TradeResponse> trades) {
         this.id = id;
         this.tickerSymbol = tickerSymbol;
         this.name = name;
         this.assetClass = assetClass;
         this.quantity = quantity;
         this.averageCostBasis = averageCostBasis;
-        this.initialValue = initialValue;
+        this.totalCost = totalCost;
         this.currency = currency;
+        this.trades = trades;
     }
 
     public Long getId() { return id; }
@@ -46,11 +50,14 @@ public class HoldingResponse {
     public BigDecimal getAverageCostBasis() { return averageCostBasis; }
     public void setAverageCostBasis(BigDecimal averageCostBasis) { this.averageCostBasis = averageCostBasis; }
 
-    public BigDecimal getInitialValue() { return initialValue; }
-    public void setInitialValue(BigDecimal initialValue) { this.initialValue = initialValue; }
+    public BigDecimal getTotalCost() { return totalCost; }
+    public void setTotalCost(BigDecimal totalCost) { this.totalCost = totalCost; }
 
     public String getCurrency() { return currency; }
     public void setCurrency(String currency) { this.currency = currency; }
+
+    public List<TradeResponse> getTrades() { return trades; }
+    public void setTrades(List<TradeResponse> trades) { this.trades = trades; }
 
     public static HoldingResponseBuilder builder() { return new HoldingResponseBuilder(); }
 
@@ -61,8 +68,9 @@ public class HoldingResponse {
         private AssetClass assetClass;
         private BigDecimal quantity;
         private BigDecimal averageCostBasis;
-        private BigDecimal initialValue;
+        private BigDecimal totalCost;
         private String currency;
+        private List<TradeResponse> trades;
 
         public HoldingResponseBuilder id(Long id) { this.id = id; return this; }
         public HoldingResponseBuilder tickerSymbol(String tickerSymbol) { this.tickerSymbol = tickerSymbol; return this; }
@@ -70,11 +78,12 @@ public class HoldingResponse {
         public HoldingResponseBuilder assetClass(AssetClass assetClass) { this.assetClass = assetClass; return this; }
         public HoldingResponseBuilder quantity(BigDecimal quantity) { this.quantity = quantity; return this; }
         public HoldingResponseBuilder averageCostBasis(BigDecimal averageCostBasis) { this.averageCostBasis = averageCostBasis; return this; }
-        public HoldingResponseBuilder initialValue(BigDecimal initialValue) { this.initialValue = initialValue; return this; }
+        public HoldingResponseBuilder totalCost(BigDecimal totalCost) { this.totalCost = totalCost; return this; }
         public HoldingResponseBuilder currency(String currency) { this.currency = currency; return this; }
+        public HoldingResponseBuilder trades(List<TradeResponse> trades) { this.trades = trades; return this; }
 
         public HoldingResponse build() {
-            return new HoldingResponse(id, tickerSymbol, name, assetClass, quantity, averageCostBasis, initialValue, currency);
+            return new HoldingResponse(id, tickerSymbol, name, assetClass, quantity, averageCostBasis, totalCost, currency, trades);
         }
     }
 }

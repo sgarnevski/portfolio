@@ -1,6 +1,6 @@
 package com.portfolio.rebalancer.controller;
 
-import com.portfolio.rebalancer.dto.request.AddHoldingRequest;
+import com.portfolio.rebalancer.dto.request.CreateHoldingRequest;
 import com.portfolio.rebalancer.dto.response.HoldingResponse;
 import com.portfolio.rebalancer.service.HoldingService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,7 +32,7 @@ public class HoldingController {
     @PostMapping
     @Operation(summary = "Add a holding to a portfolio")
     public ResponseEntity<HoldingResponse> addHolding(@PathVariable Long portfolioId,
-                                                      @Valid @RequestBody AddHoldingRequest request) {
+                                                      @Valid @RequestBody CreateHoldingRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(holdingService.addHolding(portfolioId, request));
     }
 
@@ -40,7 +40,7 @@ public class HoldingController {
     @Operation(summary = "Update a holding")
     public ResponseEntity<HoldingResponse> updateHolding(@PathVariable Long portfolioId,
                                                          @PathVariable Long holdingId,
-                                                         @Valid @RequestBody AddHoldingRequest request) {
+                                                         @Valid @RequestBody CreateHoldingRequest request) {
         return ResponseEntity.ok(holdingService.updateHolding(portfolioId, holdingId, request));
     }
 

@@ -7,6 +7,7 @@ import rebalanceSaga from './rebalanceSaga';
 import priceSaga from './priceSaga';
 import currencySaga from './currencySaga';
 import userSaga from './userSaga';
+import tradeSaga from './tradeSaga';
 
 export default function* rootSaga() {
   yield all([
@@ -18,5 +19,6 @@ export default function* rootSaga() {
     fork(priceSaga),
     fork(currencySaga),
     fork(userSaga),
+    fork(tradeSaga),
   ]);
 }

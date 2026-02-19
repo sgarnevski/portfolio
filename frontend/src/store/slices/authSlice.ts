@@ -44,6 +44,20 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
+    googleLoginRequest: (state, _action: PayloadAction<string>) => {
+      state.loading = true;
+      state.error = null;
+    },
+    googleLoginSuccess: (state, action: PayloadAction<{ token: string; username: string; userId: number }>) => {
+      state.loading = false;
+      state.isAuthenticated = true;
+      state.token = action.payload.token;
+      state.user = { id: action.payload.userId, username: action.payload.username };
+    },
+    googleLoginFailure: (state, action: PayloadAction<string>) => {
+      state.loading = false;
+      state.error = action.payload;
+    },
     logout: (state) => {
       state.user = null;
       state.token = null;
@@ -57,6 +71,7 @@ const authSlice = createSlice({
 export const {
   loginRequest, loginSuccess, loginFailure,
   registerRequest, registerSuccess, registerFailure,
+  googleLoginRequest, googleLoginSuccess, googleLoginFailure,
   logout,
 } = authSlice.actions;
 export default authSlice.reducer;

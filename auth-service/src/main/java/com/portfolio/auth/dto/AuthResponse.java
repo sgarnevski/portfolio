@@ -1,4 +1,4 @@
-package com.portfolio.rebalancer.dto.response;
+package com.portfolio.auth.dto;
 
 public class AuthResponse {
     private String token;

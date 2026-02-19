@@ -4,26 +4,29 @@ import com.portfolio.rebalancer.dto.request.CreatePortfolioRequest;
 import com.portfolio.rebalancer.dto.response.AllocationResponse;
 import com.portfolio.rebalancer.dto.response.HoldingResponse;
 import com.portfolio.rebalancer.dto.response.PortfolioResponse;
+import com.portfolio.rebalancer.dto.response.TradeResponse;
+import com.portfolio.rebalancer.entity.Holding;
 import com.portfolio.rebalancer.entity.Portfolio;
-import com.portfolio.rebalancer.entity.User;
+import com.portfolio.rebalancer.entity.Trade;
+import com.portfolio.rebalancer.entity.TradeType;
 import com.portfolio.rebalancer.exception.ResourceNotFoundException;
 import com.portfolio.rebalancer.repository.PortfolioRepository;
-import com.portfolio.rebalancer.repository.UserRepository;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.Collections;
 import java.util.List;
 
 @Service
 public class PortfolioService {
 
     private final PortfolioRepository portfolioRepository;
-    private final UserRepository userRepository;
 
-    public PortfolioService(PortfolioRepository portfolioRepository, UserRepository userRepository) {
+    public PortfolioService(PortfolioRepository portfolioRepository) {
         this.portfolioRepository = portfolioRepository;
-        this.userRepository = userRepository;
     }
 
     public List<PortfolioResponse> getAllPortfolios() {
@@ -40,13 +43,10 @@ public class PortfolioService {
 
     @Transactional
     public PortfolioResponse createPortfolio(CreatePortfolioRequest request) {
-        User user = userRepository.findByUsername(getCurrentUsername())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
         Portfolio portfolio = Portfolio.builder()
                 .name(request.getName())
                 .description(request.getDescription())
-                .owner(user)
+                .ownerId(getCurrentUserId())
                 .build();
         portfolio = portfolioRepository.save(portfolio);
         return toResponse(portfolio);
@@ -74,14 +74,7 @@ public class PortfolioService {
     }
 
     private Long getCurrentUserId() {
-        String username = getCurrentUsername();
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"))
-                .getId();
-    }
-
-    private String getCurrentUsername() {
-        return SecurityContextHolder.getContext().getAuthentication().getName();
+        return (Long) SecurityContextHolder.getContext().getAuthentication().getCredentials();
     }
 
     private PortfolioResponse toResponse(Portfolio portfolio) {
@@ -90,15 +83,7 @@ public class PortfolioService {
                 .name(portfolio.getName())
                 .description(portfolio.getDescription())
                 .holdings(portfolio.getHoldings().stream()
-                        .map(h -> HoldingResponse.builder()
-                                .id(h.getId())
-                                .tickerSymbol(h.getTickerSymbol())
-                                .name(h.getName())
-                                .assetClass(h.getAssetClass())
-                                .quantity(h.getQuantity())
-                                .averageCostBasis(h.getAverageCostBasis())
-                                .currency(h.getCurrency())
-                                .build())
+                        .map(this::toHoldingResponse)
                         .toList())
                 .targetAllocations(portfolio.getTargetAllocations().stream()
                         .map(a -> AllocationResponse.builder()
@@ -109,6 +94,53 @@ public class PortfolioService {
                         .toList())
                 .createdAt(portfolio.getCreatedAt())
                 .updatedAt(portfolio.getUpdatedAt())
+                .build();
+    }
+
+    private HoldingResponse toHoldingResponse(Holding h) {
+        List<Trade> trades = h.getTrades() != null ? h.getTrades() : Collections.emptyList();
+
+        BigDecimal quantity = BigDecimal.ZERO;
+        BigDecimal totalCost = BigDecimal.ZERO;
+
+        for (Trade t : trades) {
+            BigDecimal tradeCost = t.getQuantity().multiply(t.getPrice());
+            BigDecimal fee = t.getFee() != null ? t.getFee() : BigDecimal.ZERO;
+            if (t.getType() == TradeType.BUY) {
+                quantity = quantity.add(t.getQuantity());
+                totalCost = totalCost.add(tradeCost).add(fee);
+            } else {
+                quantity = quantity.subtract(t.getQuantity());
+            }
+        }
+
+        BigDecimal averageCostBasis = BigDecimal.ZERO;
+        if (quantity.compareTo(BigDecimal.ZERO) > 0) {
+            averageCostBasis = totalCost.divide(quantity, 4, RoundingMode.HALF_UP);
+        }
+
+        List<TradeResponse> tradeResponses = trades.stream()
+                .map(t -> TradeResponse.builder()
+                        .id(t.getId())
+                        .date(t.getDate())
+                        .type(t.getType())
+                        .quantity(t.getQuantity())
+                        .price(t.getPrice())
+                        .fee(t.getFee())
+                        .createdAt(t.getCreatedAt())
+                        .build())
+                .toList();
+
+        return HoldingResponse.builder()
+                .id(h.getId())
+                .tickerSymbol(h.getTickerSymbol())
+                .name(h.getName())
+                .assetClass(h.getAssetClass())
+                .quantity(quantity)
+                .averageCostBasis(averageCostBasis)
+                .totalCost(totalCost)
+                .currency(h.getCurrency())
+                .trades(tradeResponses)
                 .build();
     }
 }
