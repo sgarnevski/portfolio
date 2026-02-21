@@ -1,5 +1,5 @@
 import { eventChannel, EventChannel } from 'redux-saga';
-import { take, put, call, fork, cancel, cancelled, takeLatest } from 'redux-saga/effects';
+import { take, put, call, fork, cancel, cancelled, takeLatest, select } from 'redux-saga/effects';
 import { Task } from 'redux-saga';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
@@ -10,6 +10,7 @@ import {
   priceUpdateReceived, wsConnected, wsDisconnected,
 } from '../slices/priceSlice';
 import { loginSuccess, logout } from '../slices/authSlice';
+import { RootState } from '../index';
 
 interface WsEvent {
   type: 'connected' | 'disconnected' | 'prices';
@@ -72,8 +73,14 @@ function* handleFetchPrices(action: PayloadAction<string[]>) {
 }
 
 function* watchWebSocket() {
+  const isAuthenticated: boolean = yield select((state: RootState) => state.auth.isAuthenticated);
+  if (isAuthenticated) {
+    const task: Task = yield fork(watchPriceChannel);
+    yield take(logout.type);
+    yield cancel(task);
+  }
   while (true) {
-    yield take(loginSuccess.type);
+    yield take([loginSuccess.type]);
     const task: Task = yield fork(watchPriceChannel);
     yield take(logout.type);
     yield cancel(task);
