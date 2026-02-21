@@ -8,6 +8,7 @@ import {
   createPortfolioRequest, createPortfolioSuccess, createPortfolioFailure,
   updatePortfolioRequest, updatePortfolioSuccess, updatePortfolioFailure,
   deletePortfolioRequest, deletePortfolioSuccess, deletePortfolioFailure,
+  updateCashBalanceRequest, updateCashBalanceSuccess, updateCashBalanceFailure,
 } from '../slices/portfolioSlice';
 
 function* handleFetchPortfolios() {
@@ -52,9 +53,22 @@ function* handleDeletePortfolio(action: PayloadAction<number>) {
   }
 }
 
+function* handleUpdateCashBalance(action: PayloadAction<{ id: number; cashBalance: number }>) {
+  try {
+    const response: Awaited<ReturnType<typeof portfolioApi.updateCashBalance>> = yield call(
+      portfolioApi.updateCashBalance, action.payload.id, action.payload.cashBalance
+    );
+    yield put(updateCashBalanceSuccess(response.data));
+  } catch (error: unknown) {
+    const msg = extractErrorMessage(error, 'Failed to update cash balance');
+    yield put(updateCashBalanceFailure(msg));
+  }
+}
+
 export default function* portfolioSaga() {
   yield takeLatest(fetchPortfoliosRequest.type, handleFetchPortfolios);
   yield takeLatest(createPortfolioRequest.type, handleCreatePortfolio);
   yield takeLatest(updatePortfolioRequest.type, handleUpdatePortfolio);
   yield takeLatest(deletePortfolioRequest.type, handleDeletePortfolio);
+  yield takeLatest(updateCashBalanceRequest.type, handleUpdateCashBalance);
 }

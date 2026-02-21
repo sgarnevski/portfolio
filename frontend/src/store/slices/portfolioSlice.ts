@@ -59,9 +59,15 @@ const portfolioSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
+    updateCashBalanceRequest: (state, _action: PayloadAction<{ id: number; cashBalance: number }>) => {
+      state.error = null;
+    },
     updateCashBalanceSuccess: (state, action: PayloadAction<Portfolio>) => {
       const idx = state.portfolios.findIndex((p) => p.id === action.payload.id);
       if (idx !== -1) state.portfolios[idx] = action.payload;
+    },
+    updateCashBalanceFailure: (state, action: PayloadAction<string>) => {
+      state.error = action.payload;
     },
     deletePortfolioRequest: (state, _action: PayloadAction<number>) => {
       state.loading = true;
@@ -85,7 +91,7 @@ export const {
   selectPortfolio,
   createPortfolioRequest, createPortfolioSuccess, createPortfolioFailure,
   updatePortfolioRequest, updatePortfolioSuccess, updatePortfolioFailure,
-  updateCashBalanceSuccess,
+  updateCashBalanceRequest, updateCashBalanceSuccess, updateCashBalanceFailure,
   deletePortfolioRequest, deletePortfolioSuccess, deletePortfolioFailure,
 } = portfolioSlice.actions;
 export default portfolioSlice.reducer;

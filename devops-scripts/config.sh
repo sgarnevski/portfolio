@@ -4,7 +4,7 @@
 # Edit paths here if your environment changes
 # ============================================================
 
-PROJECT_ROOT="D:/src/portfolio-rebalancer"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BACKEND_DIR="$PROJECT_ROOT/backend"
 AUTH_DIR="$PROJECT_ROOT/auth-service"
 GATEWAY_DIR="$PROJECT_ROOT/market-data-gateway"

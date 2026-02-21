@@ -5,7 +5,7 @@ import { RootState } from '../../store';
 import { fetchHoldingsRequest } from '../../store/slices/holdingSlice';
 import { fetchAllocationsRequest } from '../../store/slices/allocationSlice';
 import { fetchPricesRequest } from '../../store/slices/priceSlice';
-import { deletePortfolioRequest } from '../../store/slices/portfolioSlice';
+import { deletePortfolioRequest, updateCashBalanceRequest } from '../../store/slices/portfolioSlice';
 import HoldingsTable from '../holdings/HoldingsTable';
 import EditPortfolioModal from './EditPortfolioModal';
 import AllocationEditor from '../allocation/AllocationEditor';
@@ -29,6 +29,8 @@ export default function PortfolioDetail() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('holdings');
   const [showEditPortfolio, setShowEditPortfolio] = useState(false);
+  const [editingCash, setEditingCash] = useState(false);
+  const [cashInput, setCashInput] = useState('');
 
   useEffect(() => {
     if (portfolioId) {
@@ -157,9 +159,38 @@ export default function PortfolioDetail() {
           {totalValue > 0 && (
             <>
               <p className="text-2xl font-bold text-blue-600">{formatCurrency(totalValue, baseCurrency)}</p>
-              {(portfolio?.cashBalance ?? 0) > 0 && (
-                <p className="text-xs text-gray-500">
-                  Cash: {formatCurrency(portfolio.cashBalance, baseCurrency)}
+              {editingCash ? (
+                <form
+                  className="flex items-center gap-1 mt-1"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const parsed = parseFloat(cashInput);
+                    if (!isNaN(parsed) && parsed >= 0) {
+                      dispatch(updateCashBalanceRequest({ id: portfolioId, cashBalance: parsed }));
+                      setEditingCash(false);
+                    }
+                  }}
+                >
+                  <span className="text-xs text-gray-500">Cash:</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={cashInput}
+                    onChange={(e) => setCashInput(e.target.value)}
+                    className="w-28 text-xs border rounded px-1 py-0.5"
+                    autoFocus
+                  />
+                  <button type="submit" className="text-xs text-blue-600 hover:text-blue-800">Save</button>
+                  <button type="button" onClick={() => setEditingCash(false)} className="text-xs text-gray-400 hover:text-gray-600">Cancel</button>
+                </form>
+              ) : (
+                <p
+                  className="text-xs text-gray-500 cursor-pointer hover:text-blue-600"
+                  onClick={() => { setCashInput(String(portfolio.cashBalance ?? 0)); setEditingCash(true); }}
+                  title="Click to edit cash balance"
+                >
+                  Cash: {formatCurrency(portfolio.cashBalance ?? 0, baseCurrency)}
                 </p>
               )}
               {totalCost > 0 && (
