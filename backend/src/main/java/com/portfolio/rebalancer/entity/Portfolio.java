@@ -82,10 +82,10 @@ public class Portfolio {
     public List<TargetAllocation> getTargetAllocations() { return targetAllocations; }
     public void setTargetAllocations(List<TargetAllocation> targetAllocations) { this.targetAllocations = targetAllocations; }
 
-    public BigDecimal getDriftThreshold() { return driftThreshold; }
+    public BigDecimal getDriftThreshold() { return driftThreshold != null ? driftThreshold : new BigDecimal("5.00"); }
     public void setDriftThreshold(BigDecimal driftThreshold) { this.driftThreshold = driftThreshold; }
 
-    public BigDecimal getCashBalance() { return cashBalance; }
+    public BigDecimal getCashBalance() { return cashBalance != null ? cashBalance : BigDecimal.ZERO; }
     public void setCashBalance(BigDecimal cashBalance) { this.cashBalance = cashBalance; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
