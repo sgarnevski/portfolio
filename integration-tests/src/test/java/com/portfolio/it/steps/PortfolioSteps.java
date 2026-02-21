@@ -139,6 +139,46 @@ public class PortfolioSteps {
         context.setLastResponse(response);
     }
 
+    @When("I create a portfolio with name {string} and baseCurrency {string}")
+    public void iCreateAPortfolioWithNameAndBaseCurrency(String name, String baseCurrency) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("name", name);
+        body.put("baseCurrency", baseCurrency);
+
+        Response response = given()
+                .baseUri(context.getBackendBaseUrl())
+                .header("Authorization", "Bearer " + context.getAuthToken())
+                .contentType(ContentType.JSON)
+                .body(body)
+                .when()
+                .post("/api/portfolios");
+
+        context.setLastResponse(response);
+
+        if (response.statusCode() == 201) {
+            Long id = response.jsonPath().getLong("id");
+            context.setPortfolioId(id);
+            context.addCreatedPortfolioId(id);
+        }
+    }
+
+    @When("I update the portfolio baseCurrency to {string}")
+    public void iUpdateThePortfolioBaseCurrencyTo(String baseCurrency) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("name", context.getLastResponse().path("name"));
+        body.put("baseCurrency", baseCurrency);
+
+        Response response = given()
+                .baseUri(context.getBackendBaseUrl())
+                .header("Authorization", "Bearer " + context.getAuthToken())
+                .contentType(ContentType.JSON)
+                .body(body)
+                .when()
+                .put("/api/portfolios/" + context.getPortfolioId());
+
+        context.setLastResponse(response);
+    }
+
     @When("I delete the portfolio")
     public void iDeleteThePortfolio() {
         deletedPortfolioId = context.getPortfolioId();
@@ -186,6 +226,11 @@ public class PortfolioSteps {
     public void thePortfolioCashBalanceIs(double cashBalance) {
         Number actual = context.getLastResponse().path("cashBalance");
         assertThat(actual.doubleValue(), is(closeTo(cashBalance, 0.01)));
+    }
+
+    @And("the portfolio baseCurrency is {string}")
+    public void thePortfolioBaseCurrencyIs(String baseCurrency) {
+        assertThat(context.getLastResponse().path("baseCurrency"), is(equalTo(baseCurrency)));
     }
 
     @And("the portfolio list is not empty")

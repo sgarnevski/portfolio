@@ -53,6 +53,25 @@ Feature: Portfolio Management
     Then the response status is 404
 
   @authenticated
+  Scenario: Create a portfolio with baseCurrency
+    When I create a portfolio with name "EUR Portfolio" and baseCurrency "EUR"
+    Then the response status is 201
+    And the portfolio baseCurrency is "EUR"
+
+  @authenticated
+  Scenario: Default baseCurrency is USD
+    When I create a portfolio with name "Default Currency"
+    Then the response status is 201
+    And the portfolio baseCurrency is "USD"
+
+  @authenticated
+  Scenario: Update portfolio baseCurrency
+    Given I create a portfolio with name "Currency Update Test"
+    When I update the portfolio baseCurrency to "GBP"
+    Then the response status is 200
+    And the portfolio baseCurrency is "GBP"
+
+  @authenticated
   Scenario: Get non-existent portfolio returns 404
     When I get portfolio with ID 999999
     Then the response status is 404
