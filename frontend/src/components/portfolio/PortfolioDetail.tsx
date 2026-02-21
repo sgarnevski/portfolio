@@ -94,16 +94,7 @@ export default function PortfolioDetail() {
     return { drifts, maxDrift, totalValue };
   }, [holdings, targetAllocations, prices, portfolio?.cashBalance]);
 
-  // Derive base currency from most common holding currency
-  const baseCurrency = useMemo(() => {
-    if (holdings.length === 0) return 'USD';
-    const counts: Record<string, number> = {};
-    for (const h of holdings) {
-      const c = h.currency || 'USD';
-      counts[c] = (counts[c] || 0) + 1;
-    }
-    return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
-  }, [holdings]);
+  const baseCurrency = portfolio?.baseCurrency ?? 'USD';
 
   if (!portfolio) return <LoadingSpinner />;
 

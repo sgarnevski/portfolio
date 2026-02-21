@@ -52,6 +52,7 @@ public class PortfolioService {
                 .ownerId(getCurrentUserId())
                 .driftThreshold(request.getDriftThreshold() != null ? request.getDriftThreshold() : new BigDecimal("5.00"))
                 .cashBalance(request.getCashBalance() != null ? request.getCashBalance() : BigDecimal.ZERO)
+                .baseCurrency(request.getBaseCurrency() != null ? request.getBaseCurrency() : "USD")
                 .build();
         portfolio = portfolioRepository.save(portfolio);
         return toResponse(portfolio);
@@ -67,6 +68,9 @@ public class PortfolioService {
         }
         if (request.getCashBalance() != null) {
             portfolio.setCashBalance(request.getCashBalance());
+        }
+        if (request.getBaseCurrency() != null) {
+            portfolio.setBaseCurrency(request.getBaseCurrency());
         }
         portfolio = portfolioRepository.save(portfolio);
         return toResponse(portfolio);
@@ -113,6 +117,7 @@ public class PortfolioService {
                         .toList())
                 .driftThreshold(portfolio.getDriftThreshold())
                 .cashBalance(portfolio.getCashBalance())
+                .baseCurrency(portfolio.getBaseCurrency())
                 .createdAt(portfolio.getCreatedAt())
                 .updatedAt(portfolio.getUpdatedAt())
                 .build();

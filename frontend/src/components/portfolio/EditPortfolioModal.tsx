@@ -1,6 +1,9 @@
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../store';
 import { updatePortfolioRequest } from '../../store/slices/portfolioSlice';
+import { fetchCurrenciesRequest } from '../../store/slices/currencySlice';
 import { Portfolio, CreatePortfolioRequest } from '../../types/portfolio';
 
 interface Props {
@@ -10,13 +13,19 @@ interface Props {
 
 export default function EditPortfolioModal({ portfolio, onClose }: Props) {
   const dispatch = useDispatch();
+  const currencies = useSelector((state: RootState) => state.currency.currencies);
   const { register, handleSubmit, formState: { errors } } = useForm<CreatePortfolioRequest>({
     defaultValues: {
       name: portfolio.name,
       description: portfolio.description || '',
       driftThreshold: portfolio.driftThreshold ?? 5,
+      baseCurrency: portfolio.baseCurrency ?? 'USD',
     },
   });
+
+  useEffect(() => {
+    if (currencies.length === 0) dispatch(fetchCurrenciesRequest());
+  }, [dispatch, currencies.length]);
 
   const onSubmit = (data: CreatePortfolioRequest) => {
     dispatch(updatePortfolioRequest({ id: portfolio.id, data }));
@@ -55,6 +64,17 @@ export default function EditPortfolioModal({ portfolio, onClose }: Props) {
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
             />
             <p className="text-xs text-gray-500 mt-1">Drift notification triggers when any asset class exceeds this threshold</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Base Currency</label>
+            <select
+              {...register('baseCurrency')}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+            >
+              {currencies.map((c) => (
+                <option key={c.id} value={c.code}>{c.code} — {c.name}</option>
+              ))}
+            </select>
           </div>
           <div className="flex gap-3 pt-2">
             <button type="submit" className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 text-sm">

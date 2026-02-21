@@ -35,6 +35,9 @@ public class Portfolio {
     @Column(name = "cash_balance", precision = 19, scale = 2)
     private BigDecimal cashBalance = BigDecimal.ZERO;
 
+    @Column(name = "base_currency", length = 3)
+    private String baseCurrency;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -45,7 +48,7 @@ public class Portfolio {
 
     public Portfolio(Long id, String name, String description, Long ownerId,
                      List<Holding> holdings, List<TargetAllocation> targetAllocations,
-                     BigDecimal driftThreshold, BigDecimal cashBalance,
+                     BigDecimal driftThreshold, BigDecimal cashBalance, String baseCurrency,
                      LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.name = name;
@@ -55,6 +58,7 @@ public class Portfolio {
         this.targetAllocations = targetAllocations != null ? targetAllocations : new ArrayList<>();
         this.driftThreshold = driftThreshold != null ? driftThreshold : new BigDecimal("5.00");
         this.cashBalance = cashBalance != null ? cashBalance : BigDecimal.ZERO;
+        this.baseCurrency = baseCurrency;
         this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
         this.updatedAt = updatedAt != null ? updatedAt : LocalDateTime.now();
     }
@@ -88,6 +92,9 @@ public class Portfolio {
     public BigDecimal getCashBalance() { return cashBalance != null ? cashBalance : BigDecimal.ZERO; }
     public void setCashBalance(BigDecimal cashBalance) { this.cashBalance = cashBalance; }
 
+    public String getBaseCurrency() { return baseCurrency != null ? baseCurrency : "USD"; }
+    public void setBaseCurrency(String baseCurrency) { this.baseCurrency = baseCurrency; }
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
@@ -105,6 +112,7 @@ public class Portfolio {
         private List<TargetAllocation> targetAllocations = new ArrayList<>();
         private BigDecimal driftThreshold;
         private BigDecimal cashBalance;
+        private String baseCurrency;
         private LocalDateTime createdAt = LocalDateTime.now();
         private LocalDateTime updatedAt = LocalDateTime.now();
 
@@ -116,11 +124,12 @@ public class Portfolio {
         public PortfolioBuilder targetAllocations(List<TargetAllocation> targetAllocations) { this.targetAllocations = targetAllocations; return this; }
         public PortfolioBuilder driftThreshold(BigDecimal driftThreshold) { this.driftThreshold = driftThreshold; return this; }
         public PortfolioBuilder cashBalance(BigDecimal cashBalance) { this.cashBalance = cashBalance; return this; }
+        public PortfolioBuilder baseCurrency(String baseCurrency) { this.baseCurrency = baseCurrency; return this; }
         public PortfolioBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
         public PortfolioBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
 
         public Portfolio build() {
-            return new Portfolio(id, name, description, ownerId, holdings, targetAllocations, driftThreshold, cashBalance, createdAt, updatedAt);
+            return new Portfolio(id, name, description, ownerId, holdings, targetAllocations, driftThreshold, cashBalance, baseCurrency, createdAt, updatedAt);
         }
     }
 }

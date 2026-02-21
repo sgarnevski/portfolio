@@ -27,7 +27,7 @@ export default function Dashboard() {
           const totalValue = p.holdings.reduce((sum, h) => {
             const price = prices[h.tickerSymbol]?.regularMarketPrice ?? 0;
             return sum + h.quantity * price;
-          }, 0);
+          }, 0) + (p.cashBalance ?? 0);
           return (
             <Link
               key={p.id}
@@ -37,7 +37,7 @@ export default function Dashboard() {
               <h3 className="font-semibold text-lg">{p.name}</h3>
               <p className="text-sm text-gray-500 mt-1">{p.description || 'No description'}</p>
               <p className="text-2xl font-bold mt-4 text-blue-600">
-                {totalValue > 0 ? formatCurrency(totalValue) : '--'}
+                {totalValue > 0 ? formatCurrency(totalValue, p.baseCurrency ?? 'USD') : '--'}
               </p>
               <p className="text-sm text-gray-400 mt-1">{p.holdings.length} holdings</p>
             </Link>

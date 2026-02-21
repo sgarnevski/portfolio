@@ -24,9 +24,15 @@ public class CreatePortfolioRequest {
     @DecimalMin("0.0")
     private BigDecimal cashBalance;
 
+    @Size(max = 3)
+    private String baseCurrency;
+
     public BigDecimal getDriftThreshold() { return driftThreshold; }
     public void setDriftThreshold(BigDecimal driftThreshold) { this.driftThreshold = driftThreshold; }
 
     public BigDecimal getCashBalance() { return cashBalance; }
     public void setCashBalance(BigDecimal cashBalance) { this.cashBalance = cashBalance; }
+
+    public String getBaseCurrency() { return baseCurrency; }
+    public void setBaseCurrency(String baseCurrency) { this.baseCurrency = baseCurrency; }
 }

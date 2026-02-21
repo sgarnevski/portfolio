@@ -12,6 +12,7 @@ public class PortfolioResponse {
     private List<AllocationResponse> targetAllocations;
     private BigDecimal driftThreshold;
     private BigDecimal cashBalance;
+    private String baseCurrency;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -20,7 +21,7 @@ public class PortfolioResponse {
 
     public PortfolioResponse(Long id, String name, String description,
                              List<HoldingResponse> holdings, List<AllocationResponse> targetAllocations,
-                             BigDecimal driftThreshold, BigDecimal cashBalance,
+                             BigDecimal driftThreshold, BigDecimal cashBalance, String baseCurrency,
                              LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.name = name;
@@ -29,6 +30,7 @@ public class PortfolioResponse {
         this.targetAllocations = targetAllocations;
         this.driftThreshold = driftThreshold;
         this.cashBalance = cashBalance;
+        this.baseCurrency = baseCurrency;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -54,6 +56,9 @@ public class PortfolioResponse {
     public BigDecimal getCashBalance() { return cashBalance; }
     public void setCashBalance(BigDecimal cashBalance) { this.cashBalance = cashBalance; }
 
+    public String getBaseCurrency() { return baseCurrency; }
+    public void setBaseCurrency(String baseCurrency) { this.baseCurrency = baseCurrency; }
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
@@ -70,6 +75,7 @@ public class PortfolioResponse {
         private List<AllocationResponse> targetAllocations;
         private BigDecimal driftThreshold;
         private BigDecimal cashBalance;
+        private String baseCurrency;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
 
@@ -80,11 +86,12 @@ public class PortfolioResponse {
         public PortfolioResponseBuilder targetAllocations(List<AllocationResponse> targetAllocations) { this.targetAllocations = targetAllocations; return this; }
         public PortfolioResponseBuilder driftThreshold(BigDecimal driftThreshold) { this.driftThreshold = driftThreshold; return this; }
         public PortfolioResponseBuilder cashBalance(BigDecimal cashBalance) { this.cashBalance = cashBalance; return this; }
+        public PortfolioResponseBuilder baseCurrency(String baseCurrency) { this.baseCurrency = baseCurrency; return this; }
         public PortfolioResponseBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
         public PortfolioResponseBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
 
         public PortfolioResponse build() {
-            return new PortfolioResponse(id, name, description, holdings, targetAllocations, driftThreshold, cashBalance, createdAt, updatedAt);
+            return new PortfolioResponse(id, name, description, holdings, targetAllocations, driftThreshold, cashBalance, baseCurrency, createdAt, updatedAt);
         }
     }
 }
