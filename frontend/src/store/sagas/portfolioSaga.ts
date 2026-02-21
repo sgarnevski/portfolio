@@ -1,6 +1,7 @@
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { portfolioApi } from '../../api/portfolioApi';
+import { extractErrorMessage } from '../../utils/extractErrorMessage';
 import { CreatePortfolioRequest } from '../../types/portfolio';
 import {
   fetchPortfoliosRequest, fetchPortfoliosSuccess, fetchPortfoliosFailure,
@@ -14,7 +15,7 @@ function* handleFetchPortfolios() {
     const response: Awaited<ReturnType<typeof portfolioApi.getAll>> = yield call(portfolioApi.getAll);
     yield put(fetchPortfoliosSuccess(response.data));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Failed to fetch portfolios';
+    const msg = extractErrorMessage(error, 'Failed to fetch portfolios');
     yield put(fetchPortfoliosFailure(msg));
   }
 }
@@ -24,7 +25,7 @@ function* handleCreatePortfolio(action: PayloadAction<CreatePortfolioRequest>) {
     const response: Awaited<ReturnType<typeof portfolioApi.create>> = yield call(portfolioApi.create, action.payload);
     yield put(createPortfolioSuccess(response.data));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Failed to create portfolio';
+    const msg = extractErrorMessage(error, 'Failed to create portfolio');
     yield put(createPortfolioFailure(msg));
   }
 }
@@ -36,7 +37,7 @@ function* handleUpdatePortfolio(action: PayloadAction<{ id: number; data: Create
     );
     yield put(updatePortfolioSuccess(response.data));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Failed to update portfolio';
+    const msg = extractErrorMessage(error, 'Failed to update portfolio');
     yield put(updatePortfolioFailure(msg));
   }
 }
@@ -46,7 +47,7 @@ function* handleDeletePortfolio(action: PayloadAction<number>) {
     yield call(portfolioApi.delete, action.payload);
     yield put(deletePortfolioSuccess(action.payload));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Failed to delete portfolio';
+    const msg = extractErrorMessage(error, 'Failed to delete portfolio');
     yield put(deletePortfolioFailure(msg));
   }
 }

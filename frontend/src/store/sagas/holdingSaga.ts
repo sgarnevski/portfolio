@@ -1,6 +1,7 @@
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { holdingApi } from '../../api/holdingApi';
+import { extractErrorMessage } from '../../utils/extractErrorMessage';
 import { CreateHoldingRequest } from '../../types/holding';
 import {
   fetchHoldingsRequest, fetchHoldingsSuccess, fetchHoldingsFailure,
@@ -14,7 +15,7 @@ function* handleFetchHoldings(action: PayloadAction<number>) {
     const response: Awaited<ReturnType<typeof holdingApi.getAll>> = yield call(holdingApi.getAll, action.payload);
     yield put(fetchHoldingsSuccess(response.data));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Failed to fetch holdings';
+    const msg = extractErrorMessage(error, 'Failed to fetch holdings');
     yield put(fetchHoldingsFailure(msg));
   }
 }
@@ -26,7 +27,7 @@ function* handleAddHolding(action: PayloadAction<{ portfolioId: number; data: Cr
     );
     yield put(addHoldingSuccess(response.data));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Failed to add holding';
+    const msg = extractErrorMessage(error, 'Failed to add holding');
     yield put(addHoldingFailure(msg));
   }
 }
@@ -38,7 +39,7 @@ function* handleUpdateHolding(action: PayloadAction<{ portfolioId: number; holdi
     );
     yield put(updateHoldingSuccess(response.data));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Failed to update holding';
+    const msg = extractErrorMessage(error, 'Failed to update holding');
     yield put(updateHoldingFailure(msg));
   }
 }
@@ -48,7 +49,7 @@ function* handleRemoveHolding(action: PayloadAction<{ portfolioId: number; holdi
     yield call(holdingApi.delete, action.payload.portfolioId, action.payload.holdingId);
     yield put(removeHoldingSuccess(action.payload.holdingId));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Failed to remove holding';
+    const msg = extractErrorMessage(error, 'Failed to remove holding');
     yield put(removeHoldingFailure(msg));
   }
 }

@@ -1,5 +1,13 @@
 export type AssetClass = 'EQUITY' | 'BOND' | 'COMMODITY' | 'REAL_ESTATE' | 'CASH';
 
+export interface Lot {
+  tradeId: number;
+  purchaseDate: string;
+  originalQuantity: number;
+  remainingQuantity: number;
+  costBasisPerShare: number;
+}
+
 export interface Holding {
   id: number;
   tickerSymbol: string;
@@ -8,8 +16,10 @@ export interface Holding {
   quantity: number;
   averageCostBasis: number | null;
   totalCost: number | null;
+  realizedPnL: number | null;
   currency: string;
   trades: Trade[];
+  lots: Lot[];
 }
 
 export interface Trade {

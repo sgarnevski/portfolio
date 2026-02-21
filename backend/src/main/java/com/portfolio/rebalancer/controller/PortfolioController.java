@@ -1,6 +1,7 @@
 package com.portfolio.rebalancer.controller;
 
 import com.portfolio.rebalancer.dto.request.CreatePortfolioRequest;
+import com.portfolio.rebalancer.dto.request.UpdateCashBalanceRequest;
 import com.portfolio.rebalancer.dto.response.PortfolioResponse;
 import com.portfolio.rebalancer.service.PortfolioService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -46,6 +47,13 @@ public class PortfolioController {
     public ResponseEntity<PortfolioResponse> updatePortfolio(@PathVariable Long id,
                                                              @Valid @RequestBody CreatePortfolioRequest request) {
         return ResponseEntity.ok(portfolioService.updatePortfolio(id, request));
+    }
+
+    @PatchMapping("/{id}/cash-balance")
+    @Operation(summary = "Update portfolio cash balance")
+    public ResponseEntity<PortfolioResponse> updateCashBalance(@PathVariable Long id,
+                                                                @Valid @RequestBody UpdateCashBalanceRequest request) {
+        return ResponseEntity.ok(portfolioService.updateCashBalance(id, request.getCashBalance()));
     }
 
     @DeleteMapping("/{id}")

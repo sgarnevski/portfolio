@@ -3,6 +3,7 @@ package com.portfolio.rebalancer.service;
 import com.portfolio.rebalancer.dto.request.CreatePortfolioRequest;
 import com.portfolio.rebalancer.dto.response.AllocationResponse;
 import com.portfolio.rebalancer.dto.response.HoldingResponse;
+import com.portfolio.rebalancer.dto.response.LotResponse;
 import com.portfolio.rebalancer.dto.response.PortfolioResponse;
 import com.portfolio.rebalancer.dto.response.TradeResponse;
 import com.portfolio.rebalancer.entity.Holding;
@@ -24,9 +25,11 @@ import java.util.List;
 public class PortfolioService {
 
     private final PortfolioRepository portfolioRepository;
+    private final LotCalculationService lotCalculationService;
 
-    public PortfolioService(PortfolioRepository portfolioRepository) {
+    public PortfolioService(PortfolioRepository portfolioRepository, LotCalculationService lotCalculationService) {
         this.portfolioRepository = portfolioRepository;
+        this.lotCalculationService = lotCalculationService;
     }
 
     public List<PortfolioResponse> getAllPortfolios() {
@@ -47,6 +50,8 @@ public class PortfolioService {
                 .name(request.getName())
                 .description(request.getDescription())
                 .ownerId(getCurrentUserId())
+                .driftThreshold(request.getDriftThreshold() != null ? request.getDriftThreshold() : new BigDecimal("5.00"))
+                .cashBalance(request.getCashBalance() != null ? request.getCashBalance() : BigDecimal.ZERO)
                 .build();
         portfolio = portfolioRepository.save(portfolio);
         return toResponse(portfolio);
@@ -57,6 +62,12 @@ public class PortfolioService {
         Portfolio portfolio = findPortfolioForCurrentUser(id);
         portfolio.setName(request.getName());
         portfolio.setDescription(request.getDescription());
+        if (request.getDriftThreshold() != null) {
+            portfolio.setDriftThreshold(request.getDriftThreshold());
+        }
+        if (request.getCashBalance() != null) {
+            portfolio.setCashBalance(request.getCashBalance());
+        }
         portfolio = portfolioRepository.save(portfolio);
         return toResponse(portfolio);
     }
@@ -65,6 +76,14 @@ public class PortfolioService {
     public void deletePortfolio(Long id) {
         Portfolio portfolio = findPortfolioForCurrentUser(id);
         portfolioRepository.delete(portfolio);
+    }
+
+    @Transactional
+    public PortfolioResponse updateCashBalance(Long id, BigDecimal cashBalance) {
+        Portfolio portfolio = findPortfolioForCurrentUser(id);
+        portfolio.setCashBalance(cashBalance);
+        portfolio = portfolioRepository.save(portfolio);
+        return toResponse(portfolio);
     }
 
     public Portfolio findPortfolioForCurrentUser(Long portfolioId) {
@@ -92,6 +111,8 @@ public class PortfolioService {
                                 .targetPercentage(a.getTargetPercentage())
                                 .build())
                         .toList())
+                .driftThreshold(portfolio.getDriftThreshold())
+                .cashBalance(portfolio.getCashBalance())
                 .createdAt(portfolio.getCreatedAt())
                 .updatedAt(portfolio.getUpdatedAt())
                 .build();
@@ -100,18 +121,18 @@ public class PortfolioService {
     private HoldingResponse toHoldingResponse(Holding h) {
         List<Trade> trades = h.getTrades() != null ? h.getTrades() : Collections.emptyList();
 
+        List<LotCalculationService.Lot> openLots = lotCalculationService.computeOpenLots(trades);
+
         BigDecimal quantity = BigDecimal.ZERO;
         BigDecimal totalCost = BigDecimal.ZERO;
+        for (LotCalculationService.Lot lot : openLots) {
+            quantity = quantity.add(lot.getRemainingQuantity());
+            totalCost = totalCost.add(lot.getRemainingQuantity().multiply(lot.getCostBasisPerShare()));
+        }
 
-        for (Trade t : trades) {
-            BigDecimal tradeCost = t.getQuantity().multiply(t.getPrice());
-            BigDecimal fee = t.getFee() != null ? t.getFee() : BigDecimal.ZERO;
-            if (t.getType() == TradeType.BUY) {
-                quantity = quantity.add(t.getQuantity());
-                totalCost = totalCost.add(tradeCost).add(fee);
-            } else {
-                quantity = quantity.subtract(t.getQuantity());
-            }
+        BigDecimal realizedPnL = BigDecimal.ZERO;
+        for (LotCalculationService.LotDisposition d : lotCalculationService.computeRealizedDispositions(trades)) {
+            realizedPnL = realizedPnL.add(d.getRealizedGain());
         }
 
         BigDecimal averageCostBasis = BigDecimal.ZERO;
@@ -131,6 +152,16 @@ public class PortfolioService {
                         .build())
                 .toList();
 
+        List<LotResponse> lotResponses = openLots.stream()
+                .map(lot -> LotResponse.builder()
+                        .tradeId(lot.getTradeId())
+                        .purchaseDate(lot.getPurchaseDate())
+                        .originalQuantity(lot.getOriginalQuantity())
+                        .remainingQuantity(lot.getRemainingQuantity())
+                        .costBasisPerShare(lot.getCostBasisPerShare())
+                        .build())
+                .toList();
+
         return HoldingResponse.builder()
                 .id(h.getId())
                 .tickerSymbol(h.getTickerSymbol())
@@ -139,8 +170,10 @@ public class PortfolioService {
                 .quantity(quantity)
                 .averageCostBasis(averageCostBasis)
                 .totalCost(totalCost)
+                .realizedPnL(realizedPnL)
                 .currency(h.getCurrency())
                 .trades(tradeResponses)
+                .lots(lotResponses)
                 .build();
     }
 }

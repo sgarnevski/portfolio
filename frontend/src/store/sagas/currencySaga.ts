@@ -1,6 +1,7 @@
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { currencyApi } from '../../api/currencyApi';
+import { extractErrorMessage } from '../../utils/extractErrorMessage';
 import { CreateCurrencyRequest } from '../../types/currency';
 import {
   fetchCurrenciesRequest, fetchCurrenciesSuccess, fetchCurrenciesFailure,
@@ -14,7 +15,7 @@ function* handleFetchCurrencies() {
     const response: Awaited<ReturnType<typeof currencyApi.getAll>> = yield call(currencyApi.getAll);
     yield put(fetchCurrenciesSuccess(response.data));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Failed to fetch currencies';
+    const msg = extractErrorMessage(error, 'Failed to fetch currencies');
     yield put(fetchCurrenciesFailure(msg));
   }
 }
@@ -24,7 +25,7 @@ function* handleCreateCurrency(action: PayloadAction<CreateCurrencyRequest>) {
     const response: Awaited<ReturnType<typeof currencyApi.create>> = yield call(currencyApi.create, action.payload);
     yield put(createCurrencySuccess(response.data));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Failed to create currency';
+    const msg = extractErrorMessage(error, 'Failed to create currency');
     yield put(createCurrencyFailure(msg));
   }
 }
@@ -36,7 +37,7 @@ function* handleUpdateCurrency(action: PayloadAction<{ id: number; data: CreateC
     );
     yield put(updateCurrencySuccess(response.data));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Failed to update currency';
+    const msg = extractErrorMessage(error, 'Failed to update currency');
     yield put(updateCurrencyFailure(msg));
   }
 }
@@ -46,7 +47,7 @@ function* handleDeleteCurrency(action: PayloadAction<number>) {
     yield call(currencyApi.delete, action.payload);
     yield put(deleteCurrencySuccess(action.payload));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Failed to delete currency';
+    const msg = extractErrorMessage(error, 'Failed to delete currency');
     yield put(deleteCurrencyFailure(msg));
   }
 }

@@ -124,6 +124,7 @@ export default function HoldingsTable({ portfolioId }: Props) {
       <td className="px-4 py-2 text-right text-gray-400">--</td>
       <td className="px-4 py-2 text-right text-gray-400">--</td>
       <td className="px-4 py-2 text-right text-gray-400">--</td>
+      <td className="px-4 py-2 text-right text-gray-400">--</td>
     </>
   );
 
@@ -153,6 +154,7 @@ export default function HoldingsTable({ portfolioId }: Props) {
                 <th className="text-right px-4 py-3 font-medium text-gray-600">Value</th>
                 <th className="text-right px-4 py-3 font-medium text-gray-600">Cost Basis</th>
                 <th className="text-right px-4 py-3 font-medium text-gray-600">P/L</th>
+                <th className="text-right px-4 py-3 font-medium text-gray-600">Realized P/L</th>
                 <th className="text-right px-4 py-3 font-medium text-gray-600">Change</th>
                 <th className="px-4 py-3"></th>
               </tr>
@@ -174,17 +176,22 @@ export default function HoldingsTable({ portfolioId }: Props) {
                 const value = h.quantity * price;
                 const change = quote?.regularMarketChangePercent ?? 0;
                 const totalCost = h.totalCost ?? 0;
-                const profitLoss = totalCost > 0 && value > 0 ? value - totalCost : null;
+                const realizedPnL = h.realizedPnL ?? 0;
+                const unrealizedPnL = totalCost > 0 && value > 0 ? value - totalCost : null;
 
                 if (editingId === h.id) {
+                  const cur = h.currency || 'USD';
                   const editExtraCells = (
                     <>
                       <td className="px-4 py-2 text-right">{h.quantity}</td>
-                      <td className="px-4 py-2 text-right">{price > 0 ? formatCurrency(price, h.currency || 'USD') : '--'}</td>
-                      <td className="px-4 py-2 text-right font-medium">{value > 0 ? formatCurrency(value, h.currency || 'USD') : '--'}</td>
-                      <td className="px-4 py-2 text-right">{totalCost > 0 ? formatCurrency(totalCost, h.currency || 'USD') : '--'}</td>
-                      <td className={`px-4 py-2 text-right font-medium ${profitLoss != null ? (profitLoss >= 0 ? 'text-green-600' : 'text-red-600') : ''}`}>
-                        {profitLoss != null ? `${profitLoss >= 0 ? '+' : ''}${formatCurrency(profitLoss, h.currency || 'USD')}` : '--'}
+                      <td className="px-4 py-2 text-right">{price > 0 ? formatCurrency(price, cur) : '--'}</td>
+                      <td className="px-4 py-2 text-right font-medium">{value > 0 ? formatCurrency(value, cur) : '--'}</td>
+                      <td className="px-4 py-2 text-right">{totalCost > 0 ? formatCurrency(totalCost, cur) : '--'}</td>
+                      <td className={`px-4 py-2 text-right font-medium ${unrealizedPnL != null ? (unrealizedPnL >= 0 ? 'text-green-600' : 'text-red-600') : ''}`}>
+                        {unrealizedPnL != null ? `${unrealizedPnL >= 0 ? '+' : ''}${formatCurrency(unrealizedPnL, cur)}` : '--'}
+                      </td>
+                      <td className={`px-4 py-2 text-right font-medium ${realizedPnL !== 0 ? (realizedPnL >= 0 ? 'text-green-600' : 'text-red-600') : ''}`}>
+                        {realizedPnL !== 0 ? `${realizedPnL >= 0 ? '+' : ''}${formatCurrency(realizedPnL, cur)}` : '--'}
                       </td>
                     </>
                   );
@@ -200,6 +207,7 @@ export default function HoldingsTable({ portfolioId }: Props) {
                   );
                 }
 
+                const cur = h.currency || 'USD';
                 return (
                   <tr key={h.id} className="hover:bg-gray-50">
                     <td className="px-4 py-3">
@@ -208,11 +216,14 @@ export default function HoldingsTable({ portfolioId }: Props) {
                     <td className="px-4 py-3 font-medium">{h.tickerSymbol}</td>
                     <td className="px-4 py-3 text-gray-600">{h.name}</td>
                     <td className="px-4 py-3 text-right">{h.quantity}</td>
-                    <td className="px-4 py-3 text-right">{price > 0 ? formatCurrency(price, h.currency || 'USD') : '--'}</td>
-                    <td className="px-4 py-3 text-right font-medium">{value > 0 ? formatCurrency(value, h.currency || 'USD') : '--'}</td>
-                    <td className="px-4 py-3 text-right">{totalCost > 0 ? formatCurrency(totalCost, h.currency || 'USD') : '--'}</td>
-                    <td className={`px-4 py-3 text-right font-medium ${profitLoss != null ? (profitLoss >= 0 ? 'text-green-600' : 'text-red-600') : ''}`}>
-                      {profitLoss != null ? `${profitLoss >= 0 ? '+' : ''}${formatCurrency(profitLoss, h.currency || 'USD')}` : '--'}
+                    <td className="px-4 py-3 text-right">{price > 0 ? formatCurrency(price, cur) : '--'}</td>
+                    <td className="px-4 py-3 text-right font-medium">{value > 0 ? formatCurrency(value, cur) : '--'}</td>
+                    <td className="px-4 py-3 text-right">{totalCost > 0 ? formatCurrency(totalCost, cur) : '--'}</td>
+                    <td className={`px-4 py-3 text-right font-medium ${unrealizedPnL != null ? (unrealizedPnL >= 0 ? 'text-green-600' : 'text-red-600') : ''}`}>
+                      {unrealizedPnL != null ? `${unrealizedPnL >= 0 ? '+' : ''}${formatCurrency(unrealizedPnL, cur)}` : '--'}
+                    </td>
+                    <td className={`px-4 py-3 text-right font-medium ${realizedPnL !== 0 ? (realizedPnL >= 0 ? 'text-green-600' : 'text-red-600') : ''}`}>
+                      {realizedPnL !== 0 ? `${realizedPnL >= 0 ? '+' : ''}${formatCurrency(realizedPnL, cur)}` : '--'}
                     </td>
                     <td className={`px-4 py-3 text-right ${change >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                       {change !== 0 ? `${change >= 0 ? '+' : ''}${change.toFixed(2)}%` : '--'}

@@ -11,10 +11,12 @@ interface DriftItem {
 interface Props {
   drifts: DriftItem[];
   onRebalance: () => void;
+  currency?: string;
+  threshold?: number;
 }
 
-export default function DriftNotification({ drifts, onRebalance }: Props) {
-  const hasDrift = drifts.some((d) => Math.abs(d.drift) > 2);
+export default function DriftNotification({ drifts, onRebalance, currency = 'USD', threshold = 5 }: Props) {
+  const hasDrift = drifts.some((d) => Math.abs(d.drift) > threshold);
 
   if (!hasDrift) return null;
 
@@ -34,7 +36,7 @@ export default function DriftNotification({ drifts, onRebalance }: Props) {
                   {d.current.toFixed(1)}% (target: {d.target.toFixed(1)}%)
                 </span>
                 <span className={`font-medium ${d.drift > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                  {d.drift > 0 ? '+' : ''}{d.drift.toFixed(1)}% ({d.driftValue > 0 ? '+' : ''}{formatCurrency(d.driftValue)})
+                  {d.drift > 0 ? '+' : ''}{d.drift.toFixed(1)}% ({d.driftValue > 0 ? '+' : ''}{formatCurrency(d.driftValue, currency)})
                 </span>
               </div>
             ))}

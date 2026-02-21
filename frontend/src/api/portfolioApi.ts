@@ -7,4 +7,6 @@ export const portfolioApi = {
   create: (data: CreatePortfolioRequest) => axiosClient.post<Portfolio>('/portfolios', data),
   update: (id: number, data: CreatePortfolioRequest) => axiosClient.put<Portfolio>(`/portfolios/${id}`, data),
   delete: (id: number) => axiosClient.delete(`/portfolios/${id}`),
+  updateCashBalance: (id: number, cashBalance: number) =>
+    axiosClient.patch<Portfolio>(`/portfolios/${id}/cash-balance`, { cashBalance }),
 };

@@ -14,6 +14,7 @@ export default function EditPortfolioModal({ portfolio, onClose }: Props) {
     defaultValues: {
       name: portfolio.name,
       description: portfolio.description || '',
+      driftThreshold: portfolio.driftThreshold ?? 5,
     },
   });
 
@@ -42,6 +43,18 @@ export default function EditPortfolioModal({ portfolio, onClose }: Props) {
               className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
               rows={3}
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Drift Threshold (%)</label>
+            <input
+              type="number"
+              step="0.5"
+              min="0"
+              max="100"
+              {...register('driftThreshold', { valueAsNumber: true, min: 0, max: 100 })}
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+            />
+            <p className="text-xs text-gray-500 mt-1">Drift notification triggers when any asset class exceeds this threshold</p>
           </div>
           <div className="flex gap-3 pt-2">
             <button type="submit" className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 text-sm">

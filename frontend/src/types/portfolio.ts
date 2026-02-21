@@ -7,6 +7,8 @@ export interface Portfolio {
   description: string;
   holdings: Holding[];
   targetAllocations: TargetAllocation[];
+  driftThreshold: number;
+  cashBalance: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -14,4 +16,6 @@ export interface Portfolio {
 export interface CreatePortfolioRequest {
   name: string;
   description?: string;
+  driftThreshold?: number;
+  cashBalance?: number;
 }

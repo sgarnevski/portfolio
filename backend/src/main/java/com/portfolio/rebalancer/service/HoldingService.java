@@ -2,6 +2,7 @@ package com.portfolio.rebalancer.service;
 
 import com.portfolio.rebalancer.dto.request.CreateHoldingRequest;
 import com.portfolio.rebalancer.dto.response.HoldingResponse;
+import com.portfolio.rebalancer.dto.response.LotResponse;
 import com.portfolio.rebalancer.dto.response.TradeResponse;
 import com.portfolio.rebalancer.entity.Holding;
 import com.portfolio.rebalancer.entity.Portfolio;
@@ -24,12 +25,14 @@ public class HoldingService {
     private final HoldingRepository holdingRepository;
     private final PortfolioService portfolioService;
     private final MarketDataClient marketDataClient;
+    private final LotCalculationService lotCalculationService;
 
     public HoldingService(HoldingRepository holdingRepository, PortfolioService portfolioService,
-                          MarketDataClient marketDataClient) {
+                          MarketDataClient marketDataClient, LotCalculationService lotCalculationService) {
         this.holdingRepository = holdingRepository;
         this.portfolioService = portfolioService;
         this.marketDataClient = marketDataClient;
+        this.lotCalculationService = lotCalculationService;
     }
 
     public List<HoldingResponse> getHoldings(Long portfolioId) {
@@ -86,18 +89,21 @@ public class HoldingService {
     public HoldingResponse toResponse(Holding holding) {
         List<Trade> trades = holding.getTrades() != null ? holding.getTrades() : Collections.emptyList();
 
+        // Use HIFO lot calculation for quantity, cost basis, and realized P/L
+        List<LotCalculationService.Lot> openLots = lotCalculationService.computeOpenLots(trades);
+
         BigDecimal quantity = BigDecimal.ZERO;
         BigDecimal totalCost = BigDecimal.ZERO;
+        for (LotCalculationService.Lot lot : openLots) {
+            quantity = quantity.add(lot.getRemainingQuantity());
+            totalCost = totalCost.add(lot.getRemainingQuantity().multiply(lot.getCostBasisPerShare()));
+        }
 
-        for (Trade t : trades) {
-            BigDecimal tradeCost = t.getQuantity().multiply(t.getPrice());
-            BigDecimal fee = t.getFee() != null ? t.getFee() : BigDecimal.ZERO;
-            if (t.getType() == TradeType.BUY) {
-                quantity = quantity.add(t.getQuantity());
-                totalCost = totalCost.add(tradeCost).add(fee);
-            } else {
-                quantity = quantity.subtract(t.getQuantity());
-            }
+        // Realized P/L from HIFO dispositions
+        BigDecimal realizedPnL = BigDecimal.ZERO;
+        List<LotCalculationService.LotDisposition> dispositions = lotCalculationService.computeRealizedDispositions(trades);
+        for (LotCalculationService.LotDisposition d : dispositions) {
+            realizedPnL = realizedPnL.add(d.getRealizedGain());
         }
 
         BigDecimal averageCostBasis = BigDecimal.ZERO;
@@ -117,6 +123,16 @@ public class HoldingService {
                         .build())
                 .toList();
 
+        List<LotResponse> lotResponses = openLots.stream()
+                .map(lot -> LotResponse.builder()
+                        .tradeId(lot.getTradeId())
+                        .purchaseDate(lot.getPurchaseDate())
+                        .originalQuantity(lot.getOriginalQuantity())
+                        .remainingQuantity(lot.getRemainingQuantity())
+                        .costBasisPerShare(lot.getCostBasisPerShare())
+                        .build())
+                .toList();
+
         return HoldingResponse.builder()
                 .id(holding.getId())
                 .tickerSymbol(holding.getTickerSymbol())
@@ -125,8 +141,10 @@ public class HoldingService {
                 .quantity(quantity)
                 .averageCostBasis(averageCostBasis)
                 .totalCost(totalCost)
+                .realizedPnL(realizedPnL)
                 .currency(holding.getCurrency())
                 .trades(tradeResponses)
+                .lots(lotResponses)
                 .build();
     }
 }

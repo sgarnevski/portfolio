@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { calculateRebalanceRequest, calculateCashRebalanceRequest } from '../../store/slices/rebalanceSlice';
+import { fetchHoldingsRequest } from '../../store/slices/holdingSlice';
+import { fetchPortfoliosRequest } from '../../store/slices/portfolioSlice';
 import { formatCurrency } from '../../utils/formatCurrency';
 import TradeRecommendationTable from './TradeRecommendationTable';
 import AllocationDriftTable from './AllocationDriftTable';
@@ -15,6 +17,9 @@ interface Props {
 export default function RebalancePanel({ portfolioId }: Props) {
   const dispatch = useDispatch();
   const { result, loading, error } = useSelector((state: RootState) => state.rebalance);
+  const portfolio = useSelector((state: RootState) =>
+    state.portfolio.portfolios.find((p) => p.id === portfolioId)
+  );
   const [cashAmount, setCashAmount] = useState('');
   const [mode, setMode] = useState<'full' | 'cash'>('full');
 
@@ -29,6 +34,11 @@ export default function RebalancePanel({ portfolioId }: Props) {
       setMode('cash');
       dispatch(calculateCashRebalanceRequest({ portfolioId, amount }));
     }
+  };
+
+  const handleTradeExecuted = () => {
+    dispatch(fetchHoldingsRequest(portfolioId));
+    dispatch(fetchPortfoliosRequest());
   };
 
   return (
@@ -53,6 +63,11 @@ export default function RebalancePanel({ portfolioId }: Props) {
                 placeholder="e.g., 5000"
                 className="rounded-md border border-gray-300 px-3 py-2 text-sm"
               />
+              {(portfolio?.cashBalance ?? 0) > 0 && (
+                <p className="text-xs text-gray-500 mt-1">
+                  + {portfolio!.cashBalance.toFixed(2)} account cash
+                </p>
+              )}
             </div>
             <button
               onClick={handleCashRebalance}
@@ -80,7 +95,13 @@ export default function RebalancePanel({ portfolioId }: Props) {
           </div>
 
           {result.allocations.length > 0 && <AllocationDriftTable allocations={result.allocations} currency={result.currency} />}
-          {result.trades.length > 0 && <TradeRecommendationTable trades={result.trades} currency={result.currency} />}
+          {result.trades.length > 0 && <TradeRecommendationTable trades={result.trades} currency={result.currency} portfolioId={portfolioId} onTradeExecuted={handleTradeExecuted} unallocatedCash={result.unallocatedCash} />}
+          {result.unallocatedCash != null && result.unallocatedCash > 0 && (
+            <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded text-center">
+              Unallocated cash remaining: <span className="font-bold">{formatCurrency(result.unallocatedCash, result.currency)}</span>
+              {' '}(not enough to purchase additional whole shares)
+            </div>
+          )}
           {result.trades.length === 0 && (
             <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded text-center">
               Portfolio is already balanced! No trades needed.

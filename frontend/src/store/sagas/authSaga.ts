@@ -1,6 +1,7 @@
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { authApi } from '../../api/authApi';
+import { extractErrorMessage } from '../../utils/extractErrorMessage';
 import {
   loginRequest, loginSuccess, loginFailure,
   registerRequest, registerSuccess, registerFailure,
@@ -16,7 +17,7 @@ function* handleLogin(action: PayloadAction<{ username: string; password: string
     localStorage.setItem('user', JSON.stringify({ id: userId, username }));
     yield put(loginSuccess({ token, username, userId }));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Login failed';
+    const msg = extractErrorMessage(error, 'Login failed');
     yield put(loginFailure(msg));
   }
 }
@@ -29,7 +30,7 @@ function* handleRegister(action: PayloadAction<{ username: string; email: string
     localStorage.setItem('user', JSON.stringify({ id: userId, username }));
     yield put(registerSuccess({ token, username, userId }));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Registration failed';
+    const msg = extractErrorMessage(error, 'Registration failed');
     yield put(registerFailure(msg));
   }
 }
@@ -42,7 +43,7 @@ function* handleGoogleLogin(action: PayloadAction<string>) {
     localStorage.setItem('user', JSON.stringify({ id: userId, username }));
     yield put(googleLoginSuccess({ token, username, userId }));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Google sign-in failed';
+    const msg = extractErrorMessage(error, 'Google sign-in failed');
     yield put(googleLoginFailure(msg));
   }
 }

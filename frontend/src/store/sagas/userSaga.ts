@@ -1,6 +1,7 @@
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { userApi } from '../../api/userApi';
+import { extractErrorMessage } from '../../utils/extractErrorMessage';
 import { UpdateProfileRequest, ChangePasswordRequest } from '../../types/user';
 import {
   fetchProfileRequest, fetchProfileSuccess, fetchProfileFailure,
@@ -13,7 +14,7 @@ function* handleFetchProfile() {
     const response: Awaited<ReturnType<typeof userApi.getProfile>> = yield call(userApi.getProfile);
     yield put(fetchProfileSuccess(response.data));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Failed to fetch profile';
+    const msg = extractErrorMessage(error, 'Failed to fetch profile');
     yield put(fetchProfileFailure(msg));
   }
 }
@@ -23,7 +24,7 @@ function* handleUpdateProfile(action: PayloadAction<UpdateProfileRequest>) {
     const response: Awaited<ReturnType<typeof userApi.updateProfile>> = yield call(userApi.updateProfile, action.payload);
     yield put(updateProfileSuccess(response.data));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Failed to update profile';
+    const msg = extractErrorMessage(error, 'Failed to update profile');
     yield put(updateProfileFailure(msg));
   }
 }
@@ -33,7 +34,7 @@ function* handleChangePassword(action: PayloadAction<ChangePasswordRequest>) {
     yield call(userApi.changePassword, action.payload);
     yield put(changePasswordSuccess());
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Failed to change password';
+    const msg = extractErrorMessage(error, 'Failed to change password');
     yield put(changePasswordFailure(msg));
   }
 }

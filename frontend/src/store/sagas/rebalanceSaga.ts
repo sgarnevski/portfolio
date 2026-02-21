@@ -1,6 +1,7 @@
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { PayloadAction } from '@reduxjs/toolkit';
 import { rebalanceApi } from '../../api/rebalanceApi';
+import { extractErrorMessage } from '../../utils/extractErrorMessage';
 import {
   calculateRebalanceRequest, calculateRebalanceSuccess, calculateRebalanceFailure,
   calculateCashRebalanceRequest,
@@ -13,7 +14,7 @@ function* handleCalculateRebalance(action: PayloadAction<number>) {
     );
     yield put(calculateRebalanceSuccess(response.data));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Failed to calculate rebalance';
+    const msg = extractErrorMessage(error, 'Failed to calculate rebalance');
     yield put(calculateRebalanceFailure(msg));
   }
 }
@@ -25,7 +26,7 @@ function* handleCashRebalance(action: PayloadAction<{ portfolioId: number; amoun
     );
     yield put(calculateRebalanceSuccess(response.data));
   } catch (error: unknown) {
-    const msg = error instanceof Error ? error.message : 'Failed to calculate cash rebalance';
+    const msg = extractErrorMessage(error, 'Failed to calculate cash rebalance');
     yield put(calculateRebalanceFailure(msg));
   }
 }

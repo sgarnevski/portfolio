@@ -1,7 +1,10 @@
 package com.portfolio.rebalancer.dto.request;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.math.BigDecimal;
 
 public class CreatePortfolioRequest {
     @NotBlank @Size(max = 100)
@@ -14,4 +17,16 @@ public class CreatePortfolioRequest {
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
+    @DecimalMin("0.0") @DecimalMax("100.0")
+    private BigDecimal driftThreshold;
+
+    @DecimalMin("0.0")
+    private BigDecimal cashBalance;
+
+    public BigDecimal getDriftThreshold() { return driftThreshold; }
+    public void setDriftThreshold(BigDecimal driftThreshold) { this.driftThreshold = driftThreshold; }
+
+    public BigDecimal getCashBalance() { return cashBalance; }
+    public void setCashBalance(BigDecimal cashBalance) { this.cashBalance = cashBalance; }
 }

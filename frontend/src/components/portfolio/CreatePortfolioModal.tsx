@@ -40,6 +40,19 @@ export default function CreatePortfolioModal() {
             placeholder="Optional description"
           />
         </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Drift Threshold (%)</label>
+          <input
+            type="number"
+            step="0.5"
+            min="0"
+            max="100"
+            defaultValue={5}
+            {...register('driftThreshold', { valueAsNumber: true, min: 0, max: 100 })}
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+          />
+          <p className="text-xs text-gray-500 mt-1">Drift notification triggers when any asset class exceeds this threshold</p>
+        </div>
         <div className="flex gap-3">
           <button
             type="submit"

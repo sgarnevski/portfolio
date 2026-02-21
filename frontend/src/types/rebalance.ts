@@ -9,7 +9,16 @@ export interface AllocationComparison {
   targetValue: number;
 }
 
+export interface LotSaleDetail {
+  tradeId: number;
+  purchaseDate: string;
+  quantity: number;
+  costBasis: number;
+  estimatedGain: number;
+}
+
 export interface TradeRecommendation {
+  holdingId: number;
   tickerSymbol: string;
   name: string;
   assetClass: AssetClass;
@@ -19,6 +28,7 @@ export interface TradeRecommendation {
   estimatedCost: number;
   currentWeight: number;
   targetWeight: number;
+  lotDetails?: LotSaleDetail[];
 }
 
 export interface RebalanceResponse {
@@ -27,5 +37,6 @@ export interface RebalanceResponse {
   currency: string;
   allocations: AllocationComparison[];
   trades: TradeRecommendation[];
+  unallocatedCash?: number;
   calculatedAt: string;
 }

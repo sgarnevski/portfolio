@@ -1,6 +1,7 @@
 package com.portfolio.rebalancer.entity;
 
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +29,12 @@ public class Portfolio {
     @OneToMany(mappedBy = "portfolio", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TargetAllocation> targetAllocations = new ArrayList<>();
 
+    @Column(name = "drift_threshold", precision = 5, scale = 2)
+    private BigDecimal driftThreshold = new BigDecimal("5.00");
+
+    @Column(name = "cash_balance", precision = 19, scale = 2)
+    private BigDecimal cashBalance = BigDecimal.ZERO;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -38,6 +45,7 @@ public class Portfolio {
 
     public Portfolio(Long id, String name, String description, Long ownerId,
                      List<Holding> holdings, List<TargetAllocation> targetAllocations,
+                     BigDecimal driftThreshold, BigDecimal cashBalance,
                      LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.name = name;
@@ -45,6 +53,8 @@ public class Portfolio {
         this.ownerId = ownerId;
         this.holdings = holdings != null ? holdings : new ArrayList<>();
         this.targetAllocations = targetAllocations != null ? targetAllocations : new ArrayList<>();
+        this.driftThreshold = driftThreshold != null ? driftThreshold : new BigDecimal("5.00");
+        this.cashBalance = cashBalance != null ? cashBalance : BigDecimal.ZERO;
         this.createdAt = createdAt != null ? createdAt : LocalDateTime.now();
         this.updatedAt = updatedAt != null ? updatedAt : LocalDateTime.now();
     }
@@ -72,6 +82,12 @@ public class Portfolio {
     public List<TargetAllocation> getTargetAllocations() { return targetAllocations; }
     public void setTargetAllocations(List<TargetAllocation> targetAllocations) { this.targetAllocations = targetAllocations; }
 
+    public BigDecimal getDriftThreshold() { return driftThreshold; }
+    public void setDriftThreshold(BigDecimal driftThreshold) { this.driftThreshold = driftThreshold; }
+
+    public BigDecimal getCashBalance() { return cashBalance; }
+    public void setCashBalance(BigDecimal cashBalance) { this.cashBalance = cashBalance; }
+
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
@@ -87,6 +103,8 @@ public class Portfolio {
         private Long ownerId;
         private List<Holding> holdings = new ArrayList<>();
         private List<TargetAllocation> targetAllocations = new ArrayList<>();
+        private BigDecimal driftThreshold;
+        private BigDecimal cashBalance;
         private LocalDateTime createdAt = LocalDateTime.now();
         private LocalDateTime updatedAt = LocalDateTime.now();
 
@@ -96,11 +114,13 @@ public class Portfolio {
         public PortfolioBuilder ownerId(Long ownerId) { this.ownerId = ownerId; return this; }
         public PortfolioBuilder holdings(List<Holding> holdings) { this.holdings = holdings; return this; }
         public PortfolioBuilder targetAllocations(List<TargetAllocation> targetAllocations) { this.targetAllocations = targetAllocations; return this; }
+        public PortfolioBuilder driftThreshold(BigDecimal driftThreshold) { this.driftThreshold = driftThreshold; return this; }
+        public PortfolioBuilder cashBalance(BigDecimal cashBalance) { this.cashBalance = cashBalance; return this; }
         public PortfolioBuilder createdAt(LocalDateTime createdAt) { this.createdAt = createdAt; return this; }
         public PortfolioBuilder updatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; return this; }
 
         public Portfolio build() {
-            return new Portfolio(id, name, description, ownerId, holdings, targetAllocations, createdAt, updatedAt);
+            return new Portfolio(id, name, description, ownerId, holdings, targetAllocations, driftThreshold, cashBalance, createdAt, updatedAt);
         }
     }
 }

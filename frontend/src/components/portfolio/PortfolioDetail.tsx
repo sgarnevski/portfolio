@@ -59,6 +59,8 @@ export default function PortfolioDetail() {
       valueByClass[h.assetClass] = (valueByClass[h.assetClass] || 0) + value;
     }
 
+    totalValue += portfolio?.cashBalance ?? 0;
+
     if (totalValue === 0) return null;
 
     const drifts: { assetClass: string; current: number; target: number; drift: number; driftValue: number }[] = [];
@@ -88,7 +90,18 @@ export default function PortfolioDetail() {
     }
 
     return { drifts, maxDrift, totalValue };
-  }, [holdings, targetAllocations, prices]);
+  }, [holdings, targetAllocations, prices, portfolio?.cashBalance]);
+
+  // Derive base currency from most common holding currency
+  const baseCurrency = useMemo(() => {
+    if (holdings.length === 0) return 'USD';
+    const counts: Record<string, number> = {};
+    for (const h of holdings) {
+      const c = h.currency || 'USD';
+      counts[c] = (counts[c] || 0) + 1;
+    }
+    return Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+  }, [holdings]);
 
   if (!portfolio) return <LoadingSpinner />;
 
@@ -102,15 +115,15 @@ export default function PortfolioDetail() {
   const totalValue = holdings.reduce((sum, h) => {
     const price = prices[h.tickerSymbol]?.regularMarketPrice ?? 0;
     return sum + h.quantity * price;
-  }, 0);
+  }, 0) + (portfolio?.cashBalance ?? 0);
 
-  // Calculate total cost basis
-  const totalCost = holdings.reduce((sum, h) => {
-    return sum + (h.totalCost ?? 0);
-  }, 0);
-
-  const totalPnL = totalCost > 0 ? totalValue - totalCost : 0;
-  const totalPnLPct = totalCost > 0 ? (totalPnL / totalCost) * 100 : 0;
+  // Calculate total cost basis and realized P/L
+  const totalCost = holdings.reduce((sum, h) => sum + (h.totalCost ?? 0), 0);
+  const totalRealizedPnL = holdings.reduce((sum, h) => sum + (h.realizedPnL ?? 0), 0);
+  const unrealizedPnL = totalCost > 0 ? totalValue - totalCost : 0;
+  const totalPnL = totalRealizedPnL + unrealizedPnL;
+  const totalInvested = totalCost > 0 ? totalCost : 0;
+  const totalPnLPct = totalInvested > 0 ? (totalPnL / totalInvested) * 100 : 0;
 
   return (
     <div>
@@ -143,10 +156,15 @@ export default function PortfolioDetail() {
         <div className="text-right">
           {totalValue > 0 && (
             <>
-              <p className="text-2xl font-bold text-blue-600">{formatCurrency(totalValue)}</p>
+              <p className="text-2xl font-bold text-blue-600">{formatCurrency(totalValue, baseCurrency)}</p>
+              {(portfolio?.cashBalance ?? 0) > 0 && (
+                <p className="text-xs text-gray-500">
+                  Cash: {formatCurrency(portfolio.cashBalance, baseCurrency)}
+                </p>
+              )}
               {totalCost > 0 && (
                 <p className={`text-sm ${totalPnL >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {totalPnL >= 0 ? '+' : ''}{formatCurrency(totalPnL)} ({totalPnLPct >= 0 ? '+' : ''}{totalPnLPct.toFixed(2)}%)
+                  {totalPnL >= 0 ? '+' : ''}{formatCurrency(totalPnL, baseCurrency)} ({totalPnLPct >= 0 ? '+' : ''}{totalPnLPct.toFixed(2)}%)
                 </p>
               )}
             </>
@@ -154,8 +172,8 @@ export default function PortfolioDetail() {
         </div>
       </div>
 
-      {driftInfo && driftInfo.maxDrift > 3 && (
-        <DriftNotification drifts={driftInfo.drifts} onRebalance={() => setActiveTab('rebalance')} />
+      {driftInfo && driftInfo.maxDrift > (portfolio.driftThreshold ?? 5) && (
+        <DriftNotification drifts={driftInfo.drifts} onRebalance={() => setActiveTab('rebalance')} currency={baseCurrency} threshold={portfolio.driftThreshold} />
       )}
 
       <div className="border-b mb-6">

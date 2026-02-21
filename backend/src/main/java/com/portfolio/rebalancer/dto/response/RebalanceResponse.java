@@ -2,6 +2,7 @@ package com.portfolio.rebalancer.dto.response;
 
 import com.portfolio.rebalancer.entity.AssetClass;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -11,6 +12,7 @@ public class RebalanceResponse {
     private String currency;
     private List<AllocationComparison> allocations;
     private List<TradeRecommendation> trades;
+    private BigDecimal unallocatedCash;
     private LocalDateTime calculatedAt;
 
     public RebalanceResponse() {
@@ -18,12 +20,13 @@ public class RebalanceResponse {
 
     public RebalanceResponse(Long portfolioId, BigDecimal totalPortfolioValue, String currency,
                              List<AllocationComparison> allocations, List<TradeRecommendation> trades,
-                             LocalDateTime calculatedAt) {
+                             BigDecimal unallocatedCash, LocalDateTime calculatedAt) {
         this.portfolioId = portfolioId;
         this.totalPortfolioValue = totalPortfolioValue;
         this.currency = currency;
         this.allocations = allocations;
         this.trades = trades;
+        this.unallocatedCash = unallocatedCash;
         this.calculatedAt = calculatedAt;
     }
 
@@ -42,6 +45,9 @@ public class RebalanceResponse {
     public List<TradeRecommendation> getTrades() { return trades; }
     public void setTrades(List<TradeRecommendation> trades) { this.trades = trades; }
 
+    public BigDecimal getUnallocatedCash() { return unallocatedCash; }
+    public void setUnallocatedCash(BigDecimal unallocatedCash) { this.unallocatedCash = unallocatedCash; }
+
     public LocalDateTime getCalculatedAt() { return calculatedAt; }
     public void setCalculatedAt(LocalDateTime calculatedAt) { this.calculatedAt = calculatedAt; }
 
@@ -53,6 +59,7 @@ public class RebalanceResponse {
         private String currency;
         private List<AllocationComparison> allocations;
         private List<TradeRecommendation> trades;
+        private BigDecimal unallocatedCash;
         private LocalDateTime calculatedAt;
 
         public RebalanceResponseBuilder portfolioId(Long portfolioId) { this.portfolioId = portfolioId; return this; }
@@ -60,10 +67,11 @@ public class RebalanceResponse {
         public RebalanceResponseBuilder currency(String currency) { this.currency = currency; return this; }
         public RebalanceResponseBuilder allocations(List<AllocationComparison> allocations) { this.allocations = allocations; return this; }
         public RebalanceResponseBuilder trades(List<TradeRecommendation> trades) { this.trades = trades; return this; }
+        public RebalanceResponseBuilder unallocatedCash(BigDecimal unallocatedCash) { this.unallocatedCash = unallocatedCash; return this; }
         public RebalanceResponseBuilder calculatedAt(LocalDateTime calculatedAt) { this.calculatedAt = calculatedAt; return this; }
 
         public RebalanceResponse build() {
-            return new RebalanceResponse(portfolioId, totalPortfolioValue, currency, allocations, trades, calculatedAt);
+            return new RebalanceResponse(portfolioId, totalPortfolioValue, currency, allocations, trades, unallocatedCash, calculatedAt);
         }
     }
 
@@ -131,7 +139,43 @@ public class RebalanceResponse {
         }
     }
 
+    public static class LotSaleDetail {
+        private Long tradeId;
+        private LocalDate purchaseDate;
+        private BigDecimal quantity;
+        private BigDecimal costBasis;
+        private BigDecimal estimatedGain;
+
+        public LotSaleDetail() {
+        }
+
+        public LotSaleDetail(Long tradeId, LocalDate purchaseDate, BigDecimal quantity,
+                              BigDecimal costBasis, BigDecimal estimatedGain) {
+            this.tradeId = tradeId;
+            this.purchaseDate = purchaseDate;
+            this.quantity = quantity;
+            this.costBasis = costBasis;
+            this.estimatedGain = estimatedGain;
+        }
+
+        public Long getTradeId() { return tradeId; }
+        public void setTradeId(Long tradeId) { this.tradeId = tradeId; }
+
+        public LocalDate getPurchaseDate() { return purchaseDate; }
+        public void setPurchaseDate(LocalDate purchaseDate) { this.purchaseDate = purchaseDate; }
+
+        public BigDecimal getQuantity() { return quantity; }
+        public void setQuantity(BigDecimal quantity) { this.quantity = quantity; }
+
+        public BigDecimal getCostBasis() { return costBasis; }
+        public void setCostBasis(BigDecimal costBasis) { this.costBasis = costBasis; }
+
+        public BigDecimal getEstimatedGain() { return estimatedGain; }
+        public void setEstimatedGain(BigDecimal estimatedGain) { this.estimatedGain = estimatedGain; }
+    }
+
     public static class TradeRecommendation {
+        private Long holdingId;
         private String tickerSymbol;
         private String name;
         private AssetClass assetClass;
@@ -141,13 +185,16 @@ public class RebalanceResponse {
         private BigDecimal estimatedCost;
         private BigDecimal currentWeight;
         private BigDecimal targetWeight;
+        private List<LotSaleDetail> lotDetails;
 
         public TradeRecommendation() {
         }
 
-        public TradeRecommendation(String tickerSymbol, String name, AssetClass assetClass,
+        public TradeRecommendation(Long holdingId, String tickerSymbol, String name, AssetClass assetClass,
                                    String action, int shares, BigDecimal currentPrice,
-                                   BigDecimal estimatedCost, BigDecimal currentWeight, BigDecimal targetWeight) {
+                                   BigDecimal estimatedCost, BigDecimal currentWeight, BigDecimal targetWeight,
+                                   List<LotSaleDetail> lotDetails) {
+            this.holdingId = holdingId;
             this.tickerSymbol = tickerSymbol;
             this.name = name;
             this.assetClass = assetClass;
@@ -157,7 +204,11 @@ public class RebalanceResponse {
             this.estimatedCost = estimatedCost;
             this.currentWeight = currentWeight;
             this.targetWeight = targetWeight;
+            this.lotDetails = lotDetails;
         }
+
+        public Long getHoldingId() { return holdingId; }
+        public void setHoldingId(Long holdingId) { this.holdingId = holdingId; }
 
         public String getTickerSymbol() { return tickerSymbol; }
         public void setTickerSymbol(String tickerSymbol) { this.tickerSymbol = tickerSymbol; }
@@ -186,9 +237,13 @@ public class RebalanceResponse {
         public BigDecimal getTargetWeight() { return targetWeight; }
         public void setTargetWeight(BigDecimal targetWeight) { this.targetWeight = targetWeight; }
 
+        public List<LotSaleDetail> getLotDetails() { return lotDetails; }
+        public void setLotDetails(List<LotSaleDetail> lotDetails) { this.lotDetails = lotDetails; }
+
         public static TradeRecommendationBuilder builder() { return new TradeRecommendationBuilder(); }
 
         public static class TradeRecommendationBuilder {
+            private Long holdingId;
             private String tickerSymbol;
             private String name;
             private AssetClass assetClass;
@@ -198,7 +253,9 @@ public class RebalanceResponse {
             private BigDecimal estimatedCost;
             private BigDecimal currentWeight;
             private BigDecimal targetWeight;
+            private List<LotSaleDetail> lotDetails;
 
+            public TradeRecommendationBuilder holdingId(Long holdingId) { this.holdingId = holdingId; return this; }
             public TradeRecommendationBuilder tickerSymbol(String tickerSymbol) { this.tickerSymbol = tickerSymbol; return this; }
             public TradeRecommendationBuilder name(String name) { this.name = name; return this; }
             public TradeRecommendationBuilder assetClass(AssetClass assetClass) { this.assetClass = assetClass; return this; }
@@ -208,10 +265,11 @@ public class RebalanceResponse {
             public TradeRecommendationBuilder estimatedCost(BigDecimal estimatedCost) { this.estimatedCost = estimatedCost; return this; }
             public TradeRecommendationBuilder currentWeight(BigDecimal currentWeight) { this.currentWeight = currentWeight; return this; }
             public TradeRecommendationBuilder targetWeight(BigDecimal targetWeight) { this.targetWeight = targetWeight; return this; }
+            public TradeRecommendationBuilder lotDetails(List<LotSaleDetail> lotDetails) { this.lotDetails = lotDetails; return this; }
 
             public TradeRecommendation build() {
-                return new TradeRecommendation(tickerSymbol, name, assetClass, action, shares,
-                        currentPrice, estimatedCost, currentWeight, targetWeight);
+                return new TradeRecommendation(holdingId, tickerSymbol, name, assetClass, action, shares,
+                        currentPrice, estimatedCost, currentWeight, targetWeight, lotDetails);
             }
         }
     }
